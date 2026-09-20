@@ -53,6 +53,7 @@ function screen(route: string, over: Partial<Screen> & { components: string[]; h
       authWall: over.components.includes("auth"),
       bodyBackground: "rgb(11, 18, 32)",
       bodyColor: "rgb(229, 231, 235)",
+      overflowsViewport: false,
     },
     styles: {
       backgrounds: { "rgb(11, 18, 32)": 900000, "rgb(17, 24, 39)": 300000, "rgb(34, 211, 238)": 4000 },

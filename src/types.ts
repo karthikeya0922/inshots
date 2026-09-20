@@ -224,6 +224,8 @@ export interface DomSummary {
   authWall: boolean;
   bodyBackground: string;
   bodyColor: string;
+  /** Page content wider than the viewport (layout does not adapt to this width). */
+  overflowsViewport: boolean;
 }
 
 export interface StyleSample {

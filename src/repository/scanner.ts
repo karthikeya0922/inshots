@@ -199,21 +199,32 @@ export function parseReadme(md: string): ReadmeSummary {
 
   // Feature bullets under a Features/What/Highlights/Capabilities heading (or top-level bullets)
   let inFeatures = false;
+  let inExcluded = false;
+  let inCode = false;
   let genericBullets: string[] = [];
   for (const l of lines) {
+    if (/^\s*```/.test(l)) {
+      inCode = !inCode;
+      continue;
+    }
+    if (inCode) continue;
     if (/^#{1,4}\s+/.test(l)) {
-      inFeatures = /feature|highlight|capabilit|what (it|you|can)|key|why|includes|overview|functionality/i.test(l);
+      // Bullets under these headings describe setup, structure or process — never product features.
+      inExcluded = /requirement|prerequisite|install|setup|getting started|usage|quick ?start|licen[cs]e|contribut|structure|layout|files?|folders?|in (this|the) repo|repo(sitory)? (contents|tree)|credits?|acknowledg|faq|troubleshoot|changelog|roadmap|todo|configuration|options|flags|command|develop|testing|deploy|environment|dependenc|support|community|author|related|reference|links?|table of contents|contents/i.test(l);
+      inFeatures = !inExcluded && /feature|highlight|capabilit|what (it|you|can) do|key|why|includes|overview|functionality/i.test(l);
       continue;
     }
     const bullet = l.match(/^\s*[-*+]\s+(.+)/);
-    if (!bullet) continue;
+    if (!bullet || inExcluded) continue;
     const text = stripMarkdown(bullet[1]).replace(/^\*\*|\*\*$/g, "").trim();
     if (text.length < 4 || text.length > 200) continue;
-    if (/^(npm|yarn|pnpm|pip|git|cd|docker)\b/.test(text)) continue;
+    if (/^(npm|yarn|pnpm|pip|git|cd|docker|node|python|brew|apt|curl|wget)\b/i.test(text)) continue;
+    if (/^[\w.@-]*\/[\w./-]*(\s*([—–:-]|$))/.test(text) || /^\.[\w-]/.test(text)) continue; // paths and dotfiles (also "dir/ — description")
+    if (/^[\w.+-]+\s+v?\d+(\.\d+)*\+?$/i.test(text) || /\bv?\d+(\.\d+)+\+?$/.test(text)) continue; // version requirements
     if (inFeatures) summary.featureBullets.push(text);
     else genericBullets.push(text);
   }
-  if (summary.featureBullets.length === 0) summary.featureBullets = genericBullets.filter((b) => !/^http/.test(b)).slice(0, 12);
+  if (summary.featureBullets.length === 0) summary.featureBullets = genericBullets.filter((b) => !/^http/.test(b) && b.split(/\s+/).length >= 2).slice(0, 12);
   summary.featureBullets = summary.featureBullets.slice(0, 20);
 
   // Metric-looking claims

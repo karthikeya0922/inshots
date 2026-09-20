@@ -337,6 +337,7 @@ function extractDomSummary(): DomSummary {
     authWall,
     bodyBackground,
     bodyColor: bodyCs.color,
+    overflowsViewport: document.documentElement.scrollWidth > window.innerWidth + 8,
   };
 }
 

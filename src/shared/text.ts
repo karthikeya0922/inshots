@@ -43,6 +43,12 @@ export function shortPhrase(s: string, maxChars = 52): string | null {
   const clean = s.replace(/\s+/g, " ").replace(/[.]+$/, "").trim();
   if (!clean) return null;
   if (clean.length <= maxChars) return clean;
+  // " · " lists (feature lines) shrink by dropping whole items, never by cutting inside one.
+  if (clean.includes(" · ")) {
+    const items = clean.split(" · ");
+    while (items.length > 1 && items.join(" · ").length > maxChars) items.pop();
+    return items.join(" · ").length <= maxChars ? items.join(" · ") : null;
+  }
   const parts = clean.split(/\s*(?:,|;|:|\s—\s|\s–\s|\s-\s|\band\b|\bwith\b|\bso\b|\bthen\b|\(|\bthat\b|\bwhich\b)\s*/);
   const first = parts[0]?.trim() ?? "";
   if (first.split(" ").length >= 3 && first.length <= maxChars) return first;

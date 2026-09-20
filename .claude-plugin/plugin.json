@@ -1,0 +1,7 @@
+{
+  "name": "hyperframe-launch",
+  "version": "0.1.0",
+  "description": "Turn a GitHub repository into a launch video built from its real, running UI. Clones and deeply analyzes the codebase, runs the app, explores it in a browser, analyzes the UI/UX, builds a verified Product DNA and storyboard, and hands a UI-aware composition to Hyperframes for rendering. Use /launch-video <repo-url>.",
+  "author": { "name": "Hyperframe Launch contributors" },
+  "keywords": ["video", "launch", "hyperframes", "repository-analysis", "playwright", "mcp"]
+}

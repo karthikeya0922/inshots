@@ -1,0 +1,228 @@
+{
+  "verified": [
+    {
+      "id": "anomaly-detection-dashboard-for-streaming-metric",
+      "claim": "Anomaly detection dashboard for streaming metrics — see spikes the moment they happen.",
+      "verified": true,
+      "evidence": [
+        "src/pages/Dashboard.jsx",
+        "src/components/AnomalyChart.jsx",
+        "src/components/Layout.jsx",
+        "src/pages/Explorer.jsx"
+      ],
+      "reason": "keywords found in 4 source file(s)",
+      "kind": "tagline",
+      "origin": "readme"
+    },
+    {
+      "id": "live-anomaly-feed",
+      "claim": "Live anomaly feed",
+      "verified": true,
+      "evidence": [
+        "src/pages/Dashboard.jsx",
+        "src/components/AnomalyChart.jsx",
+        "src/pages/Investigations.jsx",
+        "src/pages/Explorer.jsx"
+      ],
+      "reason": "readme evidence (confidence 0.75)",
+      "kind": "feature",
+      "origin": "feature"
+    },
+    {
+      "id": "metric-explorer",
+      "claim": "Metric explorer",
+      "verified": true,
+      "evidence": [
+        "src/main.jsx",
+        "src/pages/Explorer.jsx",
+        "src/components/AnomalyChart.jsx",
+        "src/pages/Dashboard.jsx",
+        "src/components/Layout.jsx"
+      ],
+      "reason": "route+component+readme evidence (confidence 0.73)",
+      "kind": "feature",
+      "origin": "feature"
+    },
+    {
+      "id": "alert-rules",
+      "claim": "Alert rules",
+      "verified": true,
+      "evidence": [
+        "src/main.jsx",
+        "src/pages/AlertRules.jsx",
+        "src/components/Layout.jsx",
+        "src/pages/Explorer.jsx"
+      ],
+      "reason": "route+component+readme evidence (confidence 0.73)",
+      "kind": "feature",
+      "origin": "feature"
+    },
+    {
+      "id": "investigation-notes",
+      "claim": "Investigation notes",
+      "verified": true,
+      "evidence": [
+        "src/main.jsx",
+        "src/pages/Investigations.jsx",
+        "src/components/AnomalyChart.jsx"
+      ],
+      "reason": "route+component+readme evidence (confidence 0.73)",
+      "kind": "feature",
+      "origin": "feature"
+    },
+    {
+      "id": "dashboard",
+      "claim": "Dashboard",
+      "verified": true,
+      "evidence": [
+        "src/main.jsx",
+        "src/pages/Dashboard.jsx"
+      ],
+      "reason": "route+component evidence (confidence 0.58)",
+      "kind": "feature",
+      "origin": "feature"
+    },
+    {
+      "id": "charts-visualizations",
+      "claim": "Charts & Visualizations",
+      "verified": true,
+      "evidence": [
+        "src/components/AnomalyChart.jsx"
+      ],
+      "reason": "dependency evidence (confidence 0.56)",
+      "kind": "feature",
+      "origin": "feature"
+    },
+    {
+      "id": "built-with-react",
+      "claim": "Built with React",
+      "verified": true,
+      "evidence": [
+        "package.json"
+      ],
+      "reason": "declared in dependency manifest",
+      "kind": "stack",
+      "origin": "package"
+    },
+    {
+      "id": "built-with-vite",
+      "claim": "Built with Vite",
+      "verified": true,
+      "evidence": [
+        "package.json"
+      ],
+      "reason": "declared in dependency manifest",
+      "kind": "stack",
+      "origin": "package"
+    },
+    {
+      "id": "built-with-react-router",
+      "claim": "Built with React Router",
+      "verified": true,
+      "evidence": [
+        "package.json"
+      ],
+      "reason": "declared in dependency manifest",
+      "kind": "stack",
+      "origin": "package"
+    },
+    {
+      "id": "sidebar-navigation",
+      "claim": "Sidebar navigation",
+      "verified": true,
+      "evidence": [
+        "assets/runtime/desktop-explorer.png"
+      ],
+      "reason": "observed on /explorer",
+      "kind": "capability",
+      "origin": "runtime"
+    },
+    {
+      "id": "data-visualized-in-charts",
+      "claim": "Data visualized in charts",
+      "verified": true,
+      "evidence": [
+        "assets/runtime/desktop-explorer.png"
+      ],
+      "reason": "observed on /explorer",
+      "kind": "capability",
+      "origin": "runtime"
+    },
+    {
+      "id": "anomaly-feed",
+      "claim": "Anomaly feed",
+      "verified": true,
+      "evidence": [
+        "assets/runtime/desktop-dashboard.png"
+      ],
+      "reason": "rendered on /dashboard",
+      "kind": "capability",
+      "origin": "runtime"
+    },
+    {
+      "id": "tabular-data-views",
+      "claim": "Tabular data views",
+      "verified": true,
+      "evidence": [
+        "assets/runtime/desktop-dashboard.png"
+      ],
+      "reason": "observed on /dashboard",
+      "kind": "capability",
+      "origin": "runtime"
+    },
+    {
+      "id": "interactive-forms",
+      "claim": "Interactive forms",
+      "verified": true,
+      "evidence": [
+        "assets/runtime/desktop-alerts.png"
+      ],
+      "reason": "observed on /alerts",
+      "kind": "capability",
+      "origin": "runtime"
+    },
+    {
+      "id": "investigation-a-1042",
+      "claim": "Investigation · a-1042",
+      "verified": true,
+      "evidence": [
+        "assets/runtime/desktop-investigations.png"
+      ],
+      "reason": "rendered on /investigations",
+      "kind": "capability",
+      "origin": "runtime"
+    },
+    {
+      "id": "sign-in",
+      "claim": "Sign in",
+      "verified": true,
+      "evidence": [
+        "assets/runtime/desktop-login.png"
+      ],
+      "reason": "rendered on /login",
+      "kind": "capability",
+      "origin": "runtime"
+    }
+  ],
+  "unsupported": [
+    {
+      "id": "trusted-by-500-engineering-teams",
+      "claim": "Trusted by 500+ engineering teams",
+      "verified": false,
+      "evidence": [],
+      "reason": "metric claim — not verifiable from code",
+      "kind": "metric",
+      "origin": "readme"
+    },
+    {
+      "id": "99-99-detection-accuracy",
+      "claim": "99.99% detection accuracy",
+      "verified": false,
+      "evidence": [],
+      "reason": "metric claim — not verifiable from code",
+      "kind": "metric",
+      "origin": "readme"
+    }
+  ],
+  "policy": "Metrics about users, revenue, accuracy, performance, customers, funding or downloads are never shown unless asserted by shipped tests/benchmarks."
+}

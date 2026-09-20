@@ -140,8 +140,15 @@ export function buildStoryboard(dna: ProductDNA, plan: StoryPlan, options: Launc
       }
       case "hero": {
         const src = heroScreen;
-        const heroFeature = features.find((f) => f.route === src?.route && !usedFeatures.has(f.id)) ?? features.find((f) => !usedFeatures.has(f.id) && f.name !== "HTTP API") ?? features.find((f) => f.route === src?.route) ?? features[0];
-        const text = heroFeature ? truncate(heroFeature.name, 40) : src?.title ?? dna.name;
+        // Hero copy priority: a feature that lives on this screen → the screen's own headline (real on-screen copy,
+        // not yet used) → any feature not shown yet → the product name. Never repeat a line from an earlier scene.
+        const shown = new Set(scenes.map((s) => s.text.toLowerCase()));
+        const routeFeature = features.find((f) => f.route === src?.route && !usedFeatures.has(f.id) && !shown.has(f.name.toLowerCase()));
+        const headline = src?.headline && safe(src.headline) && !shown.has(src.headline.toLowerCase()) ? shortPhrase(src.headline, 40) : null;
+        const unusedFeature = features.find((f) => !usedFeatures.has(f.id) && f.name !== "HTTP API" && !shown.has(f.name.toLowerCase()));
+        const heroFeature = routeFeature ?? (headline ? undefined : unusedFeature);
+        const text = heroFeature ? truncate(heroFeature.name, 40) : headline ?? unusedFeature?.name ?? dna.name;
+        if (heroFeature) usedFeatures.add(heroFeature.id);
         scene = mk(n, t, duration, "hero", src, text, undefined, motionFor(src, "hero", options.format), transition, tDur, { intent: "the one impact of the film lands here", beatLock: true, sfx: sfxFor("hero", tone, options.sfx) });
         scene.motionNotes = `${motionNotes(scene.motion, src)} This is the widest, longest look at the real interface — keep it readable.`;
         break;

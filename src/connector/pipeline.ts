@@ -137,7 +137,7 @@ export async function createLaunchVideo(partial: Partial<LaunchOptions> & { repo
     const compositionDir = path.join(outputDir, "composition");
     const hfVersion = (await hyperframesVersion()) ?? "0.8.52";
     const screenFiles: CompositionInput["screenFiles"] = new Map();
-    for (const s of runtime.screens) screenFiles.set(s.id, { file: s.file, fullPageFile: s.fullPageFile, interactionFile: s.interaction?.file, width: s.viewport.width, height: s.viewport.height, fullHeight: s.fullPageHeight, mobileFile: runtime.mobileScreens?.find((m) => m.route === s.route)?.file });
+    for (const s of runtime.screens) screenFiles.set(s.id, { file: s.file, fullPageFile: s.fullPageFile, interactionFile: s.interaction?.file, width: s.viewport.width, height: s.viewport.height, fullHeight: s.fullPageHeight, mobileFile: runtime.mobileScreens?.find((m) => m.route === s.route && !m.dom.overflowsViewport)?.file });
     for (const s of runtime.sourceDerived) screenFiles.set(s.id, { file: s.file, width: 1440, height: 900 });
     const fontFiles = findFontFiles(repo.scan.files.map((f) => ({ rel: f.rel, abs: f.abs })), [ui.visualSystem.typography.display, ui.visualSystem.typography.body]);
     const built = await buildComposition({ outputDir, compositionDir, dna, storyboard, scenes: storyboard.scenes, music, sfx, audioData, reactive: plan.audio.reactive, screenFiles, fontFiles, hyperframesVersion: hfVersion });

@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "hyperframe-launch": {
+      "command": "node",
+      "args": ["${CLAUDE_PLUGIN_ROOT}/bin/hyperframe-launch-mcp.js"],
+      "env": { "HYPERFRAMES_SKIP_SKILLS": "1" }
+    }
+  }
+}
