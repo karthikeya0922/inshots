@@ -22,7 +22,8 @@ export async function analyzeRepository(clone: CloneResult): Promise<RepositoryS
   const warnings: string[] = [];
 
   const pkgName = readPackageName(scan);
-  const name = cleanName(scan.readme.title) ?? cleanName(pkgName) ?? humanize(path.basename(clone.localPath).replace(/-[a-z0-9]{6,}$/, ""));
+  // The README title is the author's own spelling ("csvkit-js", "/brag") — keep it. Package/dir names get humanized.
+  const name = cleanName(scan.readme.title, true) ?? cleanName(pkgName) ?? humanize(path.basename(clone.localPath).replace(/-[a-z0-9]{6,}$/, ""));
   const description = scan.readme.tagline ?? scan.readme.description ?? readPackageDescription(scan) ?? "";
 
   if (!det.primaryApp) warnings.push("No runnable application detected; the video will use source-derived visuals.");
@@ -109,12 +110,12 @@ function readPackageDescription(scan: ScanResult): string | undefined {
   return m?.[1];
 }
 
-function cleanName(s?: string): string | undefined {
+function cleanName(s?: string, verbatim = false): string | undefined {
   if (!s) return undefined;
   const t = s.replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]/gu, "").replace(/\s+/g, " ").trim();
   if (!t || t.length > 60) return undefined;
   if (/^(readme|project|untitled)$/i.test(t)) return undefined;
-  return /^[a-z0-9-_.]+$/.test(t) ? humanize(t) : t;
+  return !verbatim && /^[a-z0-9-_.]+$/.test(t) ? humanize(t) : t;
 }
 
 function sortRecord(r: Record<string, number>): Record<string, number> {

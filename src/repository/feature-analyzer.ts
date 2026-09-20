@@ -269,7 +269,9 @@ function bulletName(bullet: string): string | null {
   const bold = bullet.match(/^\*{0,2}([^*:]{3,60}?)\*{0,2}(?::\s+|\s+[—–-]\s+)/);
   const raw = bold ? bold[1].trim() : bullet.split(/\s+/).slice(0, 4).join(" ").replace(/[.,;:!]+$/, "");
   if (raw.length < 3) return null;
-  // Keep the author's casing (README names are already product vocabulary); just capitalise the first letter.
+  // Keep the author's casing (README names are already product vocabulary). Code-style identifiers
+  // ("csvcut", "kubectl-tree") stay exactly as written; prose gets a capital first letter.
+  if (/^[a-z][a-z0-9_.-]*$/.test(raw)) return raw;
   return raw.charAt(0).toUpperCase() + raw.slice(1);
 }
 
