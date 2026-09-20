@@ -41,7 +41,7 @@ export function compositionBriefMarkdown(dna: ProductDNA, plan: StoryPlan, story
   const l: string[] = [];
   l.push(`# Hyperframes Composition Brief: ${dna.name}`, "");
   l.push(`## Project`, `- Product: ${dna.name} (${dna.category})`, `- Source: ${dna.runtime.status === "ok" ? `${dna.runtime.screenCount} screens captured from the running app` : `runtime ${dna.runtime.status}${dna.runtime.reason ? ` — ${dna.runtime.reason}` : ""}; source-derived visuals`}`, `- Audience: ${dna.audience}`, "");
-  l.push(`## Output`, `- Composition directory: \`${outputDir}/composition/\``, `- Rendered video: \`${outputDir}/launch.mp4\``, `- Format: ${storyboard.format} — ${storyboard.width}×${storyboard.height} @ ${storyboard.fps}fps`, `- Duration: ${storyboard.duration}s`, "");
+  l.push(`## Output`, `- Composition directory: \`${outputDir}/composition/\``, `- Rendered video: \`${outputDir}/frameo.mp4\``, `- Format: ${storyboard.format} — ${storyboard.width}×${storyboard.height} @ ${storyboard.fps}fps`, `- Duration: ${storyboard.duration}s`, "");
   l.push(`## Product angle`, plan.strongestAngle, "", `Hook: **${plan.hook.text}** · CTA: **${plan.cta.text}**`, "");
   l.push(`## Source screens & actual UI elements`);
   for (const s of dna.screens.filter((s) => scenes.some((sc) => sc.source === s.id))) l.push(`- \`${s.file}\` — ${s.route} · ${s.components.join(", ") || "source card"} · score ${s.score}`);

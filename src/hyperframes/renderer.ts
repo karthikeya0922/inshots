@@ -32,9 +32,13 @@ export interface CheckSummary {
 
 export async function hyperframesVersion(): Promise<string | null> {
   if (!(await hasCommand("npx"))) return null;
-  const res = await exec("npx", ["--no-install", "hyperframes", "--version"], { timeoutMs: 60_000, inheritEnv: true });
-  const v = (res.stdout + res.stderr).match(/(\d+\.\d+\.\d+)/)?.[1];
-  return res.code === 0 && v ? v : null;
+  // Prefer whatever is cached; when npx refuses (e.g. a newer release just landed) let it install non-interactively.
+  for (const args of [["--no-install", "hyperframes", "--version"], ["--yes", "hyperframes", "--version"]]) {
+    const res = await exec("npx", args, { timeoutMs: 180_000, inheritEnv: true });
+    const v = res.stdout.match(/(\d+\.\d+\.\d+)/)?.[1];
+    if (res.code === 0 && v) return v;
+  }
+  return null;
 }
 
 export async function runCheck(compositionDir: string, timeoutMs: number): Promise<CheckSummary> {
@@ -65,7 +69,7 @@ export async function renderComposition(opts: RenderOptions): Promise<RenderResu
   if (!version) {
     return {
       status: "not_rendered",
-      reason: "Hyperframes CLI is not available. Install it with `npm i -g hyperframes` (or ensure `npx hyperframes` works; Node ≥ 22 and FFmpeg are required), then run `hyperframe-launch render <output-dir>`.",
+      reason: "Hyperframes CLI is not available. Install it with `npm i -g hyperframes` (or ensure `npx hyperframes` works; Node ≥ 22 and FFmpeg are required), then run `/frameo <repo>` again.",
       check: null,
     };
   }

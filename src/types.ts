@@ -1,7 +1,7 @@
 /**
- * Shared types for the Hyperframe Launch pipeline.
+ * Shared types for the Frameo pipeline.
  *
- * Every stage writes one of these structures to `launch-output/` so that the
+ * Every stage writes one of these structures to `frameo-output/` so that the
  * artifacts are the contract between modules: a module can be replaced as long
  * as it produces the same JSON.
  */
@@ -21,7 +21,7 @@ export interface LaunchOptions {
   /** GitHub URL, git URL, or local directory path. */
   repositoryUrl: string;
   branch?: string;
-  /** Target seconds, 15–30. Default 24. */
+  /** Target seconds, 15–30. Default 30. */
   duration: number;
   format: VideoFormat;
   /** Tone preset or freeform creative direction. */
@@ -32,7 +32,7 @@ export interface LaunchOptions {
   platform: Platform;
   style?: string;
   targetAudience?: string;
-  /** Output directory (default `launch-output/`, timestamped if it exists). */
+  /** Output directory (default `frameo-output/`, timestamped if it exists). */
   outputDir?: string;
   /** Where repositories get cloned / installed. Default: OS temp dir. */
   workspaceDir?: string;

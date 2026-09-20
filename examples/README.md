@@ -4,7 +4,7 @@
 (a Vite + React + Recharts anomaly-detection dashboard):
 
 ```
-hyperframe-launch test/fixtures/vite-react-saas --quality looks
+frameo test/fixtures/vite-react-saas --quality looks
 ```
 
 Read `launch-plan.md` (the creative north star), `storyboard.md` (the scene contract),

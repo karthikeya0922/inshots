@@ -1,15 +1,15 @@
 {
-  "name": "hyperframe-launch",
+  "name": "frameo",
   "version": "0.1.0",
-  "description": "Hyperframe Launch — turn a GitHub repository into a launch video built from its real, running UI. Deep repository intelligence + runtime/browser exploration + UI/UX analysis + verified storytelling + Hyperframes rendering.",
+  "description": "Frameo — turn a GitHub repository into a launch video built from its real, running UI. Deep repository intelligence + runtime/browser exploration + UI/UX analysis + verified storytelling + Hyperframes rendering.",
   "type": "module",
   "license": "MIT",
   "engines": {
     "node": ">=22"
   },
   "bin": {
-    "hyperframe-launch": "./bin/hyperframe-launch.js",
-    "hyperframe-launch-mcp": "./bin/hyperframe-launch-mcp.js"
+    "frameo": "./bin/frameo.js",
+    "frameo-mcp": "./bin/frameo-mcp.js"
   },
   "files": [
     "bin",
@@ -26,7 +26,7 @@
     "dev": "tsx src/connector/cli.ts",
     "mcp": "tsx src/connector/mcp-server.ts",
     "test": "tsx --test test/*.test.ts",
-    "test:e2e": "HYPERFRAME_LAUNCH_E2E=1 tsx --test test/e2e/*.test.ts",
+    "test:e2e": "FRAMEO_E2E=1 tsx --test test/e2e/*.test.ts",
     "lint": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {

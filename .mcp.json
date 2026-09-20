@@ -1,8 +1,8 @@
 {
   "mcpServers": {
-    "hyperframe-launch": {
+    "frameo": {
       "command": "node",
-      "args": ["${CLAUDE_PLUGIN_ROOT}/bin/hyperframe-launch-mcp.js"],
+      "args": ["${CLAUDE_PLUGIN_ROOT}/bin/frameo-mcp.js"],
       "env": { "HYPERFRAMES_SKIP_SKILLS": "1" }
     }
   }

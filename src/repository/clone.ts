@@ -36,7 +36,7 @@ export async function cloneRepository(
   input: string,
   opts: { branch?: string; workspaceDir?: string; timeoutMs?: number } = {},
 ): Promise<CloneResult> {
-  const workspaceRoot = opts.workspaceDir ?? path.join(os.tmpdir(), "hyperframe-launch");
+  const workspaceRoot = opts.workspaceDir ?? path.join(os.tmpdir(), "frameo");
   await ensureDir(workspaceRoot);
 
   if (isLocalPath(input)) {

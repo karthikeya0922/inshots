@@ -155,7 +155,7 @@ async function resolvePython(cwd: string, opts: LauncherOptions, logs: string[])
   if (!base) return null;
   if (!opts.install) return { python: base };
   // Keep the virtualenv out of the repository (never pollute a local checkout, never get re-scanned).
-  const venv = path.join(os.tmpdir(), "hyperframe-launch", "venvs", createHash("sha1").update(cwd).digest("hex").slice(0, 12));
+  const venv = path.join(os.tmpdir(), "frameo", "venvs", createHash("sha1").update(cwd).digest("hex").slice(0, 12));
   const bin = path.join(venv, process.platform === "win32" ? "Scripts" : "bin", process.platform === "win32" ? "python.exe" : "python");
   if (exists(bin)) return { python: bin, venv };
   const res = await exec(base, ["-m", "venv", venv], { cwd, timeoutMs: 120_000 });

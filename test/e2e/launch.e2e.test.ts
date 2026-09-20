@@ -8,7 +8,7 @@ import { createLaunchVideo } from "../../src/connector/pipeline.js";
 import { hyperframesVersion } from "../../src/hyperframes/renderer.js";
 
 const FIXTURES = path.join(path.dirname(fileURLToPath(import.meta.url)), "..", "fixtures");
-const enabled = process.env.HYPERFRAME_LAUNCH_E2E === "1";
+const enabled = process.env.FRAMEO_E2E === "1";
 
 test("end-to-end: static site → runtime capture → storyboard → Hyperframes render", { skip: !enabled }, async () => {
   const out = await fs.mkdtemp(path.join(os.tmpdir(), "hfl-e2e-"));
@@ -24,7 +24,7 @@ test("end-to-end: static site → runtime capture → storyboard → Hyperframes
     assert.equal(result.render.status, "rendered", result.render.reason);
     assert.ok(result.render.ffprobe?.hasAudio, "music is mixed in");
     assert.ok(Math.abs((result.render.ffprobe?.durationSec ?? 0) - result.storyboard.duration) < 0.6);
-    assert.ok(await fs.stat(path.join(out, "launch.mp4")));
+    assert.ok(await fs.stat(path.join(out, "frameo.mp4")));
     assert.ok(await fs.stat(path.join(out, "poster.png")));
   }
   assert.ok(result.qualityGate.passed, JSON.stringify(result.qualityGate.checks.filter((c) => !c.ok)));

@@ -36,7 +36,7 @@ export const IGNORED_DIRS = new Set([
   ".astro",
   ".vercel",
   ".netlify",
-  "launch-output",
+  "frameo-output",
 ]);
 
 export interface WalkEntry {
@@ -71,7 +71,7 @@ export async function walk(root: string, opts: WalkOptions = {}): Promise<WalkEn
     for (const entry of entries) {
       const abs = path.join(dir, entry.name);
       if (entry.isDirectory()) {
-        if (ignore.has(entry.name) || entry.name.startsWith(".git") || /(^\.?venv|-venv$|^site-packages$|^\.tox$|^\.nox$|^virtualenv$|^\.hyperframe-launch)/.test(entry.name)) continue;
+        if (ignore.has(entry.name) || entry.name.startsWith(".git") || /(^\.?venv|-venv$|^site-packages$|^\.tox$|^\.nox$|^virtualenv$|^\.frameo)/.test(entry.name)) continue;
         if (depth < maxDepth) queue.push({ dir: abs, depth: depth + 1 });
       } else if (entry.isFile()) {
         let size = 0;

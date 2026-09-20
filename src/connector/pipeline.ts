@@ -17,12 +17,12 @@ import { ensureDir, removeDir, writeJson, writeText } from "../shared/fs.js";
 import { redactSecrets } from "../repository/secrets.js";
 
 export const PLATFORM_PRESETS: Record<Platform, { format: VideoFormat; duration: number }> = {
-  linkedin: { format: "landscape", duration: 24 },
-  x: { format: "landscape", duration: 20 },
-  "instagram-reel": { format: "vertical", duration: 20 },
-  "youtube-short": { format: "vertical", duration: 24 },
-  "product-hunt": { format: "landscape", duration: 25 },
-  generic: { format: "landscape", duration: 24 },
+  linkedin: { format: "landscape", duration: 30 },
+  x: { format: "landscape", duration: 30 },
+  "instagram-reel": { format: "vertical", duration: 30 },
+  "youtube-short": { format: "vertical", duration: 30 },
+  "product-hunt": { format: "landscape", duration: 30 },
+  generic: { format: "landscape", duration: 30 },
 };
 
 export function withDefaults(partial: Partial<LaunchOptions> & { repositoryUrl: string }): LaunchOptions {
@@ -155,11 +155,11 @@ export async function createLaunchVideo(partial: Partial<LaunchOptions> & { repo
     // 10. Render ---------------------------------------------------------------------------------------------
     let render: RenderResult = { status: "not_rendered", reason: "render disabled (--no-render)" };
     if (options.render) {
-      const r = await renderComposition({ compositionDir, outputVideo: path.join(outputDir, "launch.mp4"), outputPoster: path.join(outputDir, "poster.png"), quality: options.quality, timeoutMs: options.timeouts.render, heroTime: built.heroTime, report });
+      const r = await renderComposition({ compositionDir, outputVideo: path.join(outputDir, "frameo.mp4"), outputPoster: path.join(outputDir, "poster.png"), quality: options.quality, timeoutMs: options.timeouts.render, heroTime: built.heroTime, report });
       const { check, ...rest } = r;
       render = rest;
       if (check) await save("hyperframes-check.json", check.raw ?? check);
-      if (render.videoPath) files["launch.mp4"] = render.videoPath;
+      if (render.videoPath) files["frameo.mp4"] = render.videoPath;
       if (render.posterPath) files["poster.png"] = render.posterPath;
     }
     await save("render-status.json", render);
@@ -177,10 +177,10 @@ export async function createLaunchVideo(partial: Partial<LaunchOptions> & { repo
   }
 }
 
-/** Re-run check + render for an existing launch-output directory (after manual/agent edits to the composition). */
+/** Re-run check + render for an existing frameo-output directory (after manual/agent edits to the composition). */
 export async function renderExisting(outputDir: string, opts: { quality?: LaunchOptions["quality"]; report?: ProgressReporter; heroTime?: number; timeoutMs?: number } = {}): Promise<RenderResult> {
   const compositionDir = path.join(outputDir, "composition");
-  const r = await renderComposition({ compositionDir, outputVideo: path.join(outputDir, "launch.mp4"), outputPoster: path.join(outputDir, "poster.png"), quality: opts.quality ?? "looks", timeoutMs: opts.timeoutMs ?? 900_000, heroTime: opts.heroTime ?? (await guessHeroTime(outputDir)), report: opts.report });
+  const r = await renderComposition({ compositionDir, outputVideo: path.join(outputDir, "frameo.mp4"), outputPoster: path.join(outputDir, "poster.png"), quality: opts.quality ?? "looks", timeoutMs: opts.timeoutMs ?? 900_000, heroTime: opts.heroTime ?? (await guessHeroTime(outputDir)), report: opts.report });
   const { check, ...rest } = r;
   if (check) await writeJson(path.join(outputDir, "hyperframes-check.json"), check.raw ?? check);
   await writeJson(path.join(outputDir, "render-status.json"), rest);

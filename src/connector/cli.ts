@@ -1,21 +1,15 @@
 #!/usr/bin/env node
-import path from "node:path";
-import { createLaunchVideo, renderExisting, withDefaults } from "./pipeline.js";
+import { createLaunchVideo, withDefaults } from "./pipeline.js";
 import { summaryLines } from "../output/index.js";
 import type { LaunchOptions, ProgressEvent } from "../types.js";
-import { cloneRepository, analyzeRepository } from "../repository/index.js";
-import { removeDir, writeJson } from "../shared/fs.js";
 
-const HELP = `hyperframe-launch — launch videos from real repositories
+const HELP = `frameo — one command: a 30-second launch video from a repository's real UI
 
 Usage:
-  hyperframe-launch <repository-url-or-path> [options]
-  hyperframe-launch create <repo> [options]       same as above
-  hyperframe-launch analyze <repo> [--out dir]    repository intelligence only (no runtime, no video)
-  hyperframe-launch render <launch-output-dir>    re-run hyperframes check + render for an existing output
+  frameo <repository-url-or-path> [options]
 
 Options:
-  --duration <sec>        15–30, default 24 (platform presets adjust it)
+  --duration <sec>        15–30, default 30
   --format <f>            landscape | vertical | square   (aliases: 16:9, 9:16, 1:1)
   --tone <preset|text>    polished | cinematic | minimal | playful | technical | app-store | bold, or freeform
   --platform <p>          linkedin | x | instagram-reel | youtube-short | product-hunt
@@ -29,7 +23,7 @@ Options:
   --no-render             build everything but do not render
   --quality <q>           draft | looks | delivery (default looks)
   --branch <name>         git branch
-  --out <dir>             output directory (default launch-output/ or timestamped)
+  --out <dir>             output directory (default frameo-output/ or timestamped)
   --workspace <dir>       where to clone (default OS temp)
   --max-screens <n>       maximum routes to capture (default 10)
   --title <name>          override the product name
@@ -99,43 +93,11 @@ export function printProgress(e: ProgressEvent): void {
 
 async function main(): Promise<void> {
   const { positional, flags } = parseArgs(process.argv.slice(2));
-  if (flags.help || (!positional.length && !flags.json)) {
+  if (flags.help || !positional.length) {
     process.stdout.write(HELP);
-    process.exit(positional.length ? 0 : 1);
+    process.exit(flags.help ? 0 : 1);
   }
-  let command = "create";
-  let target = positional[0];
-  if (["create", "analyze", "render"].includes(positional[0])) {
-    command = positional[0];
-    target = positional[1];
-  }
-  if (!target) {
-    process.stderr.write("Missing repository URL / path.\n");
-    process.exit(1);
-  }
-
-  if (command === "render") {
-    const outDir = path.resolve(target);
-    const r = await renderExisting(outDir, { quality: (flags.quality as LaunchOptions["quality"]) ?? "looks", report: printProgress });
-    if (flags.json) process.stdout.write(JSON.stringify(r, null, 2) + "\n");
-    else process.stdout.write(r.status === "rendered" ? `Rendered ${r.videoPath}\n` : `Not rendered: ${r.reason}\n`);
-    process.exit(r.status === "rendered" ? 0 : 2);
-  }
-
-  if (command === "analyze") {
-    const clone = await cloneRepository(target, { branch: flags.branch as string | undefined, workspaceDir: flags.workspace as string | undefined });
-    try {
-      const repo = await analyzeRepository(clone);
-      const out = typeof flags.out === "string" ? path.resolve(flags.out) : path.join(process.cwd(), "launch-output", "repository-analysis.json");
-      await writeJson(out, repo.analysis);
-      if (flags.json) process.stdout.write(JSON.stringify(repo.analysis, null, 2) + "\n");
-      else process.stdout.write(`${repo.analysis.name}: ${repo.analysis.frameworks.frontend.join(", ") || "no frontend"}; ${repo.analysis.features.length} features → ${out}\n`);
-    } finally {
-      if (!clone.isLocal && !flags.workspace) await removeDir(clone.localPath).catch(() => {});
-    }
-    return;
-  }
-
+  const target = positional[0];
   const partial = optionsFromFlags(target, flags);
   const started = Date.now();
   const result = await createLaunchVideo(partial, { report: flags.json ? undefined : printProgress });
@@ -144,7 +106,7 @@ async function main(): Promise<void> {
     process.stdout.write(JSON.stringify({ ok: result.ok, outputDir: result.outputDir, summary: lines, render: result.render, qualityGate: result.qualityGate, files: result.files }, null, 2) + "\n");
   } else {
     process.stdout.write("\n" + lines.join("\n") + "\n\n");
-    process.stdout.write(`Your launch package is ready: ${result.outputDir}  (${((Date.now() - started) / 1000).toFixed(0)}s)\n`);
+    process.stdout.write(`Your Frameo launch package is ready: ${result.outputDir}  (${((Date.now() - started) / 1000).toFixed(0)}s)\n`);
     if (result.render.status === "rendered") process.stdout.write(`Video:  ${result.render.videoPath}\nPoster: ${result.render.posterPath}\n`);
     else process.stdout.write(`Video not rendered: ${result.render.reason}\n`);
     const failures = result.qualityGate.checks.filter((c) => !c.ok);
@@ -153,7 +115,7 @@ async function main(): Promise<void> {
   process.exit(result.ok ? 0 : 2);
 }
 
-const invokedDirectly = process.argv[1] && /cli\.(ts|js)$/.test(process.argv[1]) || process.argv[1]?.endsWith("hyperframe-launch.js") || process.argv[1]?.endsWith("hyperframe-launch");
+const invokedDirectly = (process.argv[1] && /cli\.(ts|js)$/.test(process.argv[1])) || process.argv[1]?.endsWith("frameo.js") || process.argv[1]?.endsWith("frameo");
 if (invokedDirectly) {
   main().catch((err) => {
     process.stderr.write(`✗ ${(err as Error).stack ?? err}\n`);

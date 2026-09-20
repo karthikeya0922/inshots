@@ -1,16 +1,16 @@
-# Hyperframe Launch
+# Frameo
 
-**Turn a GitHub repository into a launch video built from its real, running UI.**
+**One command. A 30-second launch video built from a repository's real, running UI.**
 
 ```
-/launch-video https://github.com/user/project
+/frameo https://github.com/user/project
 ```
 
-Hyperframe Launch is a connector/plugin for AI agents (MCP server + Claude Code skill + CLI). Give
-it a repository and it clones the code, understands the codebase, **runs the application**,
+Frameo is a connector/plugin for AI agents (MCP server + Claude Code skill + CLI) with a single
+command, `/frameo`. Give it a repository and it clones the code, understands the codebase, **runs the application**,
 explores it in a real browser, captures the actual screens, analyzes the UI/UX, verifies every
 claim against source, writes a storyboard, hands a UI-aware composition to
-[Hyperframes](https://hyperframes.heygen.com), and renders a 15–30 second launch film plus share
+[Hyperframes](https://hyperframes.heygen.com), and renders a 30-second launch film plus share
 copy for LinkedIn, X, Product Hunt and short-form.
 
 The result feels like a designer, a product marketer, a developer and a motion designer looked at
@@ -24,13 +24,13 @@ the whole repository and made a film for **this** product — not like an AI gen
 ✓ UI system analyzed (dark, dashboard, premium)
 ✓ 6 product flows identified
 ✓ Product DNA generated
-✓ Storyboard generated (7 scenes, 24s, landscape)
+✓ Storyboard generated (7 scenes, 30s, landscape)
 ✓ Claims verified (18 verified, 2 excluded)
 ✓ Hyperframes composition created
-✓ Video rendered → launch.mp4
+✓ Video rendered → frameo.mp4
 ✓ Quality gate passed
 
-Your launch package is ready: launch-output/
+Your launch package is ready: frameo-output/
 ```
 
 ---
@@ -38,11 +38,11 @@ Your launch package is ready: launch-output/
 ## How it differs from `/brag`
 
 [`/brag`](https://github.com/latent-spaces/brag) is the reference: read the project → creative plan →
-composition brief → Hyperframes → launch video → share copy. Hyperframe Launch keeps that
+composition brief → Hyperframes → launch video → share copy. Frameo keeps that
 architecture (discover → plan → brief → compose → check → render → deliver, music/SFX handling,
 beat-aware timing, poster baked as frame 0) and goes much deeper on the *understanding* side:
 
-| | `/brag` | Hyperframe Launch |
+| | `/brag` | Frameo |
 |---|---|---|
 | Input | current project directory | any GitHub URL, git URL, `owner/repo`, or local path |
 | Understanding | reads `index.html`, CSS, README | full repository intelligence: frameworks, backend, database, package managers, monorepo apps, file-based + code-based routes, evidence-backed features, design tokens, brand assets, license |
@@ -52,7 +52,7 @@ beat-aware timing, poster baked as frame 0) and goes much deeper on the *underst
 | Claims | "use the project's actual copy" | explicit claim verification: every line traced to files; metrics about users/revenue/accuracy/speed/funding are **never** shown |
 | Motion | Hyperframes decides | UI-aware presets derived from what each screen contains (chart-reveal, row-reveal, card-stagger, pan-vertical, focus-zoom, device-scroll, parallax-drift, slow-push) |
 | Fallback | n/a | app can't run → `runtime_unavailable` + source-derived visuals (real code cards, README words) — never a fake render |
-| Interface | skill | MCP tool `create_launch_video`, Claude Code skill `/launch-video`, CLI `hyperframe-launch` |
+| Interface | skill | one command everywhere: MCP tool `frameo`, Claude Code skill `/frameo`, CLI `frameo` |
 
 ## Pipeline
 
@@ -81,7 +81,7 @@ Render
 Launch Video + Share Copy                                     src/copy/, src/output/
 ```
 
-Every stage writes JSON/Markdown to `launch-output/`; the artifacts are the contract between
+Every stage writes JSON/Markdown to `frameo-output/`; the artifacts are the contract between
 modules, so any module can be replaced.
 
 ## Install
@@ -91,8 +91,8 @@ use), Playwright Chromium (`npx playwright install chromium`). Python 3 is neede
 Python projects; git only to clone remote repositories.
 
 ```bash
-git clone <this repo> hyperframe-launch
-cd hyperframe-launch
+git clone <this repo> frameo
+cd frameo
 npm install
 npx playwright install chromium
 npm run build
@@ -100,27 +100,22 @@ npm run build
 
 ### As a Claude Code plugin / MCP server
 
-`.claude-plugin/plugin.json` + `.mcp.json` register the `hyperframe-launch` MCP server and the
-`/launch-video` skill. Tools:
+`.claude-plugin/plugin.json` + `.mcp.json` register the `frameo` MCP server and the
+`/frameo` skill. There is exactly one command and one tool:
 
 | Tool | Purpose |
 |---|---|
-| `create_launch_video` | full pipeline; returns output dir, step summary, quality gate, storyboard |
-| `analyze_repository` | repository intelligence only (fast, no runtime) |
-| `render_launch_video` | re-run `hyperframes check` + `render` after editing `composition/index.html` |
-| `get_launch_status` | read an existing `launch-output/` |
+| `frameo` | the whole pipeline; returns output dir, step summary, quality gate, storyboard |
 
-Run the server directly: `node bin/hyperframe-launch-mcp.js` (stdio).
+Run the server directly: `node bin/frameo-mcp.js` (stdio).
 
 ### CLI
 
 ```bash
-hyperframe-launch https://github.com/user/project
-hyperframe-launch https://github.com/user/project --tone cinematic --platform linkedin
-hyperframe-launch . --duration 20 --format vertical
-hyperframe-launch owner/repo --tone "minimal Apple-style" --no-sfx
-hyperframe-launch analyze https://github.com/user/project        # intelligence only
-hyperframe-launch render launch-output --quality delivery         # re-render after edits
+frameo https://github.com/user/project
+frameo https://github.com/user/project --tone cinematic --platform linkedin
+frameo . --format vertical
+frameo owner/repo --tone "minimal Apple-style" --no-sfx
 ```
 
 `npm run dev -- <repo>` runs it from source via `tsx`.
@@ -130,7 +125,7 @@ hyperframe-launch render launch-output --quality delivery         # re-render af
 ```json
 {
   "repository_url": "https://github.com/user/project",
-  "duration": 24,           // 15–30
+  "duration": 30,           // 15–30, default 30
   "format": "landscape",    // landscape (16:9) | vertical (9:16) | square (1:1)
   "tone": "polished",       // polished | cinematic | minimal | playful | technical | app-store | bold | freeform text
   "voice": false,
@@ -142,7 +137,6 @@ hyperframe-launch render launch-output --quality delivery         # re-render af
   "target_audience": "developers",
   "run": true,              // run the app + browser exploration
   "install": true,          // allow dependency install (lifecycle scripts always disabled)
-  "render": true,
   "quality": "looks"        // draft | looks | delivery
 }
 ```
@@ -154,7 +148,7 @@ design language (developer-focused → `technical`, dark + saturated accent → 
 ## Output
 
 ```
-launch-output/
+frameo-output/
 ├── product-dna.json            source of truth: features, screens, flows, identity, claims
 ├── repository-analysis.json    frameworks, apps, routes, features, tokens, brand assets, redactions
 ├── runtime-analysis.json       launch command, URL, screens (DOM + style samples), flows, logs
@@ -172,7 +166,7 @@ launch-output/
 ├── quality-gate.json           the quality gate
 ├── launch-result.json          summary
 ├── poster.png                  hero frame (also baked as frame 0 of the video)
-└── launch.mp4
+└── frameo.mp4
 ```
 
 ## What "UI-aware" means in practice
@@ -261,7 +255,7 @@ src/
 ├── copy/          share copy
 ├── output/        output dir, quality gate, summary
 └── shared/        exec (safe spawn), fs, color, text
-skills/launch-video/   the agent skill (+ review rubric)
+skills/frameo/   the agent skill (+ review rubric)
 assets/                bundled music (ende.app Happy Beats — verify license before redistribution) and CC0 Kenney SFX
 test/                  fixtures, unit tests, e2e tests
 ```
@@ -273,5 +267,6 @@ test/                  fixtures, unit tests, e2e tests
   uses the login screen plus source-derived visuals.
 - Very large monorepos are capped at 20,000 scanned files and 10 captured routes by default
   (`--max-screens`).
+- `render` / `analyze` are not separate commands: `/frameo <repo>` always produces the full package.
 - Beat detection for user-supplied tracks uses an energy-based onset detector (deterministic, no
   Python); bundled tracks ship with precomputed cue presets.

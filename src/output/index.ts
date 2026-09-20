@@ -4,11 +4,11 @@ import { exists, timestamp } from "../shared/fs.js";
 import { looksLikeSecret } from "../repository/secrets.js";
 import { containsBannedPhrase } from "../shared/text.js";
 
-/** Choose `launch-output/` or a timestamped sibling when it already exists. */
+/** Choose `frameo-output/` or a timestamped sibling when it already exists. */
 export function resolveOutputDir(base: string | undefined, cwd: string): string {
-  const dir = base ? path.resolve(cwd, base) : path.join(cwd, "launch-output");
+  const dir = base ? path.resolve(cwd, base) : path.join(cwd, "frameo-output");
   if (!exists(dir)) return dir;
-  return base ? dir : path.join(cwd, `launch-output-${timestamp()}`);
+  return base ? dir : path.join(cwd, `frameo-output-${timestamp()}`);
 }
 
 export interface GateInput {
@@ -63,7 +63,7 @@ export function runQualityGate(g: GateInput): QualityGate {
   // Hyperframes + output
   if (g.options.render) {
     add("hyperframes.check", g.render.checkOk === true, g.render.checkOk ? "check passed" : g.render.reason ?? "check not run", g.render.status === "rendered" ? "error" : "warn");
-    add("output.mp4", g.render.status === "rendered" && !!g.render.videoPath && exists(g.render.videoPath), g.render.status === "rendered" ? `launch.mp4 (${g.render.ffprobe?.durationSec ?? "?"}s${g.render.ffprobe?.hasAudio ? ", audio" : ", NO AUDIO"})` : g.render.reason ?? "not rendered", "warn");
+    add("output.mp4", g.render.status === "rendered" && !!g.render.videoPath && exists(g.render.videoPath), g.render.status === "rendered" ? `frameo.mp4 (${g.render.ffprobe?.durationSec ?? "?"}s${g.render.ffprobe?.hasAudio ? ", audio" : ", NO AUDIO"})` : g.render.reason ?? "not rendered", "warn");
     add("output.poster", !!g.render.posterPath && exists(g.render.posterPath), g.render.posterPath ? "poster.png" : "no poster", "warn");
     if (g.render.status === "rendered" && g.render.ffprobe?.durationSec) add("output.duration-matches", Math.abs(g.render.ffprobe.durationSec - g.storyboard.duration) < 0.6, `rendered ${g.render.ffprobe.durationSec}s vs planned ${g.storyboard.duration}s`, "warn");
   }

@@ -7,7 +7,7 @@
 
 ## Output
 - Composition directory: `vite-final/composition/`
-- Rendered video: `vite-final/launch.mp4`
+- Rendered video: `vite-final/frameo.mp4`
 - Format: landscape — 1920×1080 @ 30fps
 - Duration: 24s
 

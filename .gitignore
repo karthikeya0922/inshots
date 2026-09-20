@@ -1,7 +1,7 @@
 node_modules/
 dist/
-launch-output*/
-.hyperframe-launch/
+frameo-output*/
+.frameo/
 test/fixtures/**/node_modules/
 test/fixtures/**/.venv/
 test/fixtures/**/dist/
@@ -9,5 +9,5 @@ test/fixtures/**/.next/
 *.log
 .DS_Store
 test/fixtures/**/.env
-test/fixtures/**/.hyperframe-launch-venv/
-**/.hyperframe-launch-venv/
+test/fixtures/**/.frameo-venv/
+**/.frameo-venv/
