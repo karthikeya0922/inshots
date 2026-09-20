@@ -19,6 +19,7 @@ export function buildProductDNA(analysis: RepositoryAnalysis, runtime: RuntimeAn
     score: s.score,
     purposeHint: purposeHint(s.route, s.components),
     headline: s.dom.headings.find((h) => h.length >= 3 && h.length <= 80),
+    headlines: s.dom.headings.filter((h) => h.length >= 3 && h.length <= 80).slice(0, 3),
   }));
   for (const sd of runtime.sourceDerived) screens.push({ id: sd.id, route: sd.sourceFile, title: sd.title, file: sd.file, components: ["code"], score: 0.3, purposeHint: sd.id === "source-readme" ? "hook" : "feature" });
 

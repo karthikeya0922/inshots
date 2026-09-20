@@ -370,6 +370,8 @@ export interface ProductDNA {
     purposeHint: string;
     /** First visible heading rendered on the screen (real product copy). */
     headline?: string;
+    /** Up to three visible headings, in page order. */
+    headlines?: string[];
   }>;
   user_flows: UserFlow[];
   visual_identity: {

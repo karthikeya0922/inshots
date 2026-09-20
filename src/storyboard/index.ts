@@ -106,7 +106,9 @@ export function buildStoryboard(dna: ProductDNA, plan: StoryPlan, options: Launc
         const featureLine = fitList(features.map((f) => f.name).filter((n) => safe(n) && n !== "HTTP API"), 58);
         const taglineUsedInHook = plan.hook.text && dna.tagline.toLowerCase().startsWith(plan.hook.text.toLowerCase().slice(0, 20));
         const taglineWords = dna.tagline.trim().split(/\s+/).length;
-        const sub = featureLine && (taglineUsedInHook || taglineWords > 8) ? featureLine : safe(dna.tagline) ? truncate(dna.tagline, 90) : featureLine || undefined;
+        // Subtitle priority: feature list → the tagline (unless the hook already said it) → the screen's real headline.
+        const headlineSub = src?.headline && safe(src.headline) && src.headline.toLowerCase() !== dna.name.toLowerCase() ? shortPhrase(src.headline, 60) ?? undefined : undefined;
+        const sub = featureLine && (taglineUsedInHook || taglineWords > 8) ? featureLine : !taglineUsedInHook && safe(dna.tagline) ? shortPhrase(dna.tagline, 90) ?? undefined : featureLine || headlineSub;
         scene = mk(n, t, duration, "reveal", src, dna.name, sub, motionFor(src, "reveal", options.format), transition, tDur, { intent: "product name lands on a strong cue; music opens up", beatLock: true, sfx: sfxFor("reveal", tone, options.sfx) });
         scene.motionNotes = src ? `Name lockup over the ${src.title}; the screenshot scales from 1.06→1.0 as the name settles.` : "Name lockup on product background.";
         break;
@@ -142,9 +144,9 @@ export function buildStoryboard(dna: ProductDNA, plan: StoryPlan, options: Launc
         const src = heroScreen;
         // Hero copy priority: a feature that lives on this screen → the screen's own headline (real on-screen copy,
         // not yet used) → any feature not shown yet → the product name. Never repeat a line from an earlier scene.
-        const shown = new Set(scenes.map((s) => s.text.toLowerCase()));
+        const shown = new Set(scenes.flatMap((s) => [s.text, s.subtext ?? ""]).filter(Boolean).map((x) => x.toLowerCase()));
         const routeFeature = features.find((f) => f.route === src?.route && !usedFeatures.has(f.id) && !shown.has(f.name.toLowerCase()));
-        const headline = src?.headline && safe(src.headline) && !shown.has(src.headline.toLowerCase()) ? shortPhrase(src.headline, 40) : null;
+        const headline = (src?.headlines ?? (src?.headline ? [src.headline] : [])).map((h) => shortPhrase(h, 40)).find((h): h is string => !!h && safe(h) && !shown.has(h.toLowerCase())) ?? null;
         const unusedFeature = features.find((f) => !usedFeatures.has(f.id) && f.name !== "HTTP API" && !shown.has(f.name.toLowerCase()));
         const heroFeature = routeFeature ?? (headline ? undefined : unusedFeature);
         const text = heroFeature ? truncate(heroFeature.name, 40) : headline ?? unusedFeature?.name ?? dna.name;
