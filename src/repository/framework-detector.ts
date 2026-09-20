@@ -289,7 +289,7 @@ export function detectFrameworks(scan: ScanResult): FrameworkDetection {
       for (const [re, label] of PY_AI) if (re.test(dep)) ai.add(label);
       deps.add(dep);
     }
-    const pyApp = pythonApp(scan, localBackend);
+    const pyApp = pythonApp(scan, localBackend, frontend);
     if (pyApp) apps.push(pyApp);
   }
 
@@ -521,7 +521,7 @@ function collectPythonDeps(scan: ScanResult): string[] {
   return [...out];
 }
 
-function pythonApp(scan: ScanResult, backend: string[]): AppCandidate | null {
+function pythonApp(scan: ScanResult, backend: string[], frontendOut: Set<string>): AppCandidate | null {
   const pyFiles = scan.files.filter((f) => f.ext === ".py" && f.content && !/(^|\/)(tests?|test_|conftest)/.test(f.rel));
   const findApp = (re: RegExp) => pyFiles.find((f) => re.test(f.content!));
   const reqs = scan.files.find((f) => /^requirements.*\.txt$/i.test(path.basename(f.rel)) && !f.rel.includes("/"))
@@ -571,6 +571,7 @@ function pythonApp(scan: ScanResult, backend: string[]): AppCandidate | null {
   }
   if (!frameworks.length && !pyFiles.length) return null;
   const hasTemplates = scan.files.some((f) => /(^|\/)templates\/.*\.html$/.test(f.rel)) || (fastapi?.content?.includes("HTMLResponse") ?? false);
+  if (hasTemplates) frontendOut.add("Server-rendered HTML (Jinja)");
   const kind: AppCandidate["kind"] = run ? (hasTemplates || streamlit || gradio || dash ? "fullstack" : "backend") : "library";
   return {
     id: "python",
@@ -595,6 +596,9 @@ export function detectStaticRoutes(scan: ScanResult, app: AppCandidate | null): 
   const under = (p: string) => (base ? p.startsWith(base + "/") : true);
   const files = scan.files.filter((f) => under(f.rel));
   const rel = (p: string) => (base ? p.slice(base.length + 1) : p);
+  // `pages/` file-based routing only exists in file-router frameworks; a plain React/Vite app often has a
+  // `src/pages/` folder of components that are NOT routes.
+  const fileRouter = (app?.frameworks ?? []).some((f) => ["Next.js", "Nuxt", "Astro", "Gatsby"].includes(f)) || files.some((x) => /(^|\/)(next|nuxt|astro|gatsby)\.config\.(js|mjs|ts|cjs)$/.test(x.rel));
 
   // Next.js app router / pages router
   for (const f of files) {
@@ -609,7 +613,7 @@ export function detectStaticRoutes(scan: ScanResult, app: AppCandidate | null): 
       routes.push({ path: normalizeNextPath(m[1]), file: f.rel, kind: "api", framework: "Next.js", dynamic: /\[/.test(m[1]) });
       continue;
     }
-    m = r.match(/^(?:src\/)?pages\/(.+)\.(tsx|jsx|ts|js|mdx|vue|svelte|astro|md)$/);
+    m = fileRouter ? r.match(/^(?:src\/)?pages\/(.+)\.(tsx|jsx|ts|js|mdx|vue|svelte|astro|md)$/) : null;
     if (m && !/^_/.test(path.posix.basename(m[1]))) {
       const p = m[1].replace(/(^|\/)index$/, "");
       const isApi = /^api\//.test(m[1]);
@@ -661,7 +665,8 @@ export function detectStaticRoutes(scan: ScanResult, app: AppCandidate | null): 
   for (const r of routes) {
     const p = r.path.replace(/\/+/g, "/").replace(/(.)\/$/, "$1") || "/";
     r.path = p;
-    if (!seen.has(p) || (seen.get(p)!.kind !== "page" && r.kind === "page")) seen.set(p, r);
+    const key = p.toLowerCase();
+    if (!seen.has(key) || (seen.get(key)!.kind !== "page" && r.kind === "page")) seen.set(key, r);
   }
   return [...seen.values()].sort((a, b) => a.path.length - b.path.length).slice(0, 80);
 }

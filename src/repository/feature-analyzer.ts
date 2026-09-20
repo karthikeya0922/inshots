@@ -2,7 +2,7 @@ import path from "node:path";
 import type { Feature, StaticRoute } from "../types.js";
 import type { ScanResult } from "./scanner.js";
 import type { FrameworkDetection } from "./framework-detector.js";
-import { humanize, slugify, uniq } from "../shared/text.js";
+import { humanize, looksLikeMetric, slugify, uniq } from "../shared/text.js";
 
 /**
  * Feature extraction with evidence.
@@ -12,7 +12,7 @@ import { humanize, slugify, uniq } from "../shared/text.js";
  * gets a much higher confidence than a bullet alone.
  */
 
-const GENERIC_ROUTE = new Set(["", "index", "home", "404", "500", "not-found", "error", "layout", "loading", "template", "default", "_app", "_document", "api", "callback", "auth", "login", "signin", "sign-in", "signup", "sign-up", "register", "logout", "reset-password", "forgot-password", "verify", "terms", "privacy", "legal", "about", "contact", "test", "debug", "health", "docs", "sitemap", "robots"]);
+const GENERIC_ROUTE = new Set(["", "index", "home", "app", "main", "start", "welcome", "404", "500", "not-found", "error", "layout", "loading", "template", "default", "_app", "_document", "api", "callback", "auth", "login", "signin", "sign-in", "signup", "sign-up", "register", "logout", "reset-password", "forgot-password", "verify", "terms", "privacy", "legal", "about", "contact", "test", "debug", "health", "docs", "sitemap", "robots"]);
 
 const AUTH_ROUTES = new Set(["login", "signin", "sign-in", "signup", "sign-up", "register", "auth", "forgot-password", "reset-password", "verify"]);
 
@@ -117,11 +117,18 @@ export function analyzeFeatures(scan: ScanResult, det: FrameworkDetection): Feat
 
   // 4. README bullets → features, verified against code
   for (const bullet of scan.readme.featureBullets) {
+    if (looksLikeMetric(bullet)) continue; // metrics are claims, never features (see claim-verifier)
     const name = bulletName(bullet);
-    if (!name) continue;
+    if (!name || looksLikeMetric(name)) continue;
     const terms = keywordsFor(bullet);
     const evidence = searchEvidence(scan, terms, 4);
-    const related = [...features.values()].find((f) => f.keywords.some((k) => k.length > 3 && terms.includes(k)) || terms.some((t) => t.length > 3 && f.name.toLowerCase().includes(t)));
+    // Associate by the bullet's *name* (the part before the dash), never by words in its body — otherwise
+    // "Invoice extraction — ... pulls out the vendor" would attach itself to a "Vendors" screen.
+    const nameTerms = keywordsFor(name);
+    const related = [...features.values()].find((f) => {
+      const fTerms = keywordsFor(f.name);
+      return fTerms.some((k) => k.length > 3 && nameTerms.includes(k)) || (f.route && nameTerms.some((t) => t.length > 3 && f.route!.toLowerCase().includes(t)));
+    });
     if (related) {
       if (name.length <= 32 && name.length >= related.name.length - 2 && !/ API$/.test(related.name)) related.name = name;
       related.description = bullet.length <= 180 ? bullet : related.description;
@@ -257,12 +264,19 @@ export function keywordsFor(text: string): string[] {
 }
 
 function bulletName(bullet: string): string | null {
-  // "**Risk Dashboard** — see everything" → "Risk Dashboard"; "Real-time detection of X" → "Real-time Detection"
-  const bold = bullet.match(/^\*{0,2}([^:—–\-*]{3,60})\*{0,2}\s*[:—–-]/);
-  if (bold) return humanize(bold[1].trim());
-  const words = bullet.split(/\s+/).slice(0, 4).join(" ").replace(/[.,;:!]+$/, "");
-  if (words.length < 3) return null;
-  return humanize(words);
+  // "**Risk Dashboard** — see everything" → "Risk Dashboard"; "Real-time detection of X" → "Real-time detection of X"
+  // The name/description separator is a colon or a dash *surrounded by spaces* — hyphens inside words ("Full-text") stay.
+  const bold = bullet.match(/^\*{0,2}([^*:]{3,60}?)\*{0,2}(?::\s+|\s+[—–-]\s+)/);
+  const raw = bold ? bold[1].trim() : bullet.split(/\s+/).slice(0, 4).join(" ").replace(/[.,;:!]+$/, "");
+  if (raw.length < 3) return null;
+  // Keep the author's casing (README names are already product vocabulary); just capitalise the first letter.
+  return raw.charAt(0).toUpperCase() + raw.slice(1);
+}
+
+/** The descriptive tail of a README bullet ("**Name** — tail"), or the whole bullet when there is no name part. */
+export function bulletTail(bullet: string): string {
+  const m = bullet.match(/^\*{0,2}[^*:]{3,60}?\*{0,2}(?::\s+|\s+[—–-]\s+)(.+)$/);
+  return (m ? m[1] : bullet).trim();
 }
 
 /** Look for files whose path or content mentions several of the keywords. */

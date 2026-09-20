@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>LedgerLens — Spend dashboard</title>
+<link rel="stylesheet" href="/static/app.css" />
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="/">LedgerLens</a>
+  <nav><a class="active" href="/">Dashboard</a><a href="/upload">Upload invoice</a><a href="/vendors">Vendors</a><a href="/docs">API</a></nav>
+</header>
+<main>
+  <h1>Spend this month</h1>
+  <p class="sub">Every invoice OCR'd, categorised, and totalled — updated as they arrive.</p>
+  <section class="kpis">
+    <div class="kpi"><span>Invoices</span><strong>{{ invoices|length }}</strong></div>
+    <div class="kpi"><span>Vendors</span><strong>{{ vendors|length }}</strong></div>
+    <div class="kpi"><span>Awaiting review</span><strong>1</strong></div>
+  </section>
+  <section class="panel">
+    <h2>Spend by vendor</h2>
+    <div class="bars">
+      {% for v in vendors %}
+      <div class="bar-row"><span class="label">{{ v.vendor }}</span><div class="bar"><i style="width: {{ (v.total / 3200 * 100)|round }}%"></i></div><span class="val">${{ '%.2f'|format(v.total) }}</span></div>
+      {% endfor %}
+    </div>
+  </section>
+  <table class="grid">
+    <thead><tr><th>Invoice</th><th>Vendor</th><th>Date</th><th>Total</th><th>Status</th></tr></thead>
+    <tbody>
+    {% for inv in invoices %}
+      <tr><td class="mono">{{ inv.id }}</td><td>{{ inv.vendor }}</td><td>{{ inv.date }}</td><td class="mono">${{ '%.2f'|format(inv.total) }}</td><td><span class="pill {{ inv.status }}">{{ inv.status }}</span></td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</main>
+</body>
+</html>

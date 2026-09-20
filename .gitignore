@@ -9,3 +9,5 @@ test/fixtures/**/.next/
 *.log
 .DS_Store
 test/fixtures/**/.env
+test/fixtures/**/.hyperframe-launch-venv/
+**/.hyperframe-launch-venv/

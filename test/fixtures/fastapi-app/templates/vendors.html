@@ -1,0 +1,16 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8" /><title>LedgerLens — Vendors</title><link rel="stylesheet" href="/static/app.css" /></head>
+<body>
+<header class="top"><a class="brand" href="/">LedgerLens</a><nav><a href="/">Dashboard</a><a href="/upload">Upload invoice</a><a class="active" href="/vendors">Vendors</a></nav></header>
+<main>
+  <h1>Vendors</h1>
+  <p class="sub">Who you pay, and how much.</p>
+  <section class="cards">
+    {% for v in vendors %}
+    <article class="card"><h3>{{ v.vendor }}</h3><strong>${{ '%.2f'|format(v.total) }}</strong><span class="sub">this month</span></article>
+    {% endfor %}
+  </section>
+</main>
+</body>
+</html>

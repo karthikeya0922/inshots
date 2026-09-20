@@ -55,8 +55,8 @@ function inferCategory(a: RepositoryAnalysis, r: RuntimeAnalysis, ui: UIAnalysis
   const has = (re: RegExp) => re.test(text);
   if (has(/(risk|fraud|compliance|audit|security|threat|vulnerab|gateway|zero.?trust|pii|guardrail)/)) return "security & compliance tool";
   if (has(/(chat|assistant|copilot|agent|llm|gpt|rag)/) && a.frameworks.ai.length) return "AI assistant";
-  if (has(/(todo|task|project management|kanban|planner|habit|notes?|journal|outline|writing)/)) return "productivity app";
-  if (has(/(analytics|dashboard|metrics|insight|monitor|observab|telemetry)/)) return "analytics dashboard";
+  if (has(/(anomal|analytics|dashboard|metrics|insight|monitor|observab|telemetry)/)) return "analytics dashboard";
+  if (has(/\b(todo|to-do|task manager|tasks app|project management|kanban|planner|habit|note-taking|notes app|journal|outliner?|writing app)\b/)) return "productivity app";
   if (a.frameworks.ai.length && has(/(detect|classif|predict|model|vision|nlp)/)) return "AI-powered tool";
   if (has(/(e-?commerce|shop|store|cart|checkout|product catalog)/)) return "e-commerce app";
   if (has(/(cms|blog|content|publish|markdown|docs site|documentation)/)) return "content platform";

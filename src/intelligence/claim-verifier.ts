@@ -1,7 +1,7 @@
 import type { Claim, RepositoryAnalysis, RuntimeAnalysis } from "../types.js";
 import type { ScanResult } from "../repository/scanner.js";
 import { keywordsFor, searchEvidence } from "../repository/feature-analyzer.js";
-import { slugify } from "../shared/text.js";
+import { looksLikeMetric, slugify } from "../shared/text.js";
 
 /**
  * Claim verification. Every sentence that could end up on screen must trace
@@ -12,8 +12,7 @@ import { slugify } from "../shared/text.js";
  * video by default.
  */
 
-const METRIC_RE = /(\d[\d,.]*\s?(%|x\b|k\+?|m\+?|ms\b|users|customers|downloads|stars|companies|teams|developers|requests|accuracy|faster|uptime|revenue|arr|mrr|funding|raised|installs)|\b(millions?|thousands?|billions?)\b|\$\s?\d)/i;
-const FABRICATION_RE = /\b(users?|customers?|revenue|accuracy|performance|funding|downloads?|installs?|clients?|companies|teams|enterprises)\b/i;
+const METRIC_RE = { test: (s: string) => looksLikeMetric(s) };
 
 export function verifyClaims(analysis: RepositoryAnalysis, runtime: RuntimeAnalysis, scan: ScanResult): Claim[] {
   const claims: Claim[] = [];
@@ -118,9 +117,7 @@ function componentClaim(c: string): string | null {
 
 /** Guard used by the storyboard and copy generators: text must be verified and free of fabricated metrics. */
 export function isSafeCopy(text: string, claims: Claim[]): boolean {
-  if (METRIC_RE.test(text) && FABRICATION_RE.test(text)) return false;
-  if (/\b\d{2,}(,\d{3})*\+?\s*(users|customers|companies|teams|downloads)/i.test(text)) return false;
-  if (/\b\d+(\.\d+)?%/.test(text)) return false;
+  if (looksLikeMetric(text)) return false;
   const lower = text.toLowerCase();
   const unsupported = claims.filter((c) => !c.verified);
   return !unsupported.some((c) => c.claim.length > 12 && lower.includes(c.claim.toLowerCase()));

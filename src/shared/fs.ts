@@ -71,7 +71,7 @@ export async function walk(root: string, opts: WalkOptions = {}): Promise<WalkEn
     for (const entry of entries) {
       const abs = path.join(dir, entry.name);
       if (entry.isDirectory()) {
-        if (ignore.has(entry.name) || entry.name.startsWith(".git")) continue;
+        if (ignore.has(entry.name) || entry.name.startsWith(".git") || /(^\.?venv|-venv$|^site-packages$|^\.tox$|^\.nox$|^virtualenv$|^\.hyperframe-launch)/.test(entry.name)) continue;
         if (depth < maxDepth) queue.push({ dir: abs, depth: depth + 1 });
       } else if (entry.isFile()) {
         let size = 0;

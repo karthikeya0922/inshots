@@ -1,7 +1,8 @@
 import type { Claim, LaunchOptions, MotionPreset, ProductDNA, Scene, ScenePurpose, StoryPlan, Storyboard, TonePreset, VideoFormat } from "../types.js";
 import { TONE_PRESETS } from "../intelligence/story-engine.js";
 import { isSafeCopy } from "../intelligence/claim-verifier.js";
-import { containsBannedPhrase, readingTime, truncate } from "../shared/text.js";
+import { containsBannedPhrase, readingTime, shortPhrase, truncate } from "../shared/text.js";
+import { bulletTail } from "../repository/feature-analyzer.js";
 
 export const FORMAT_SIZES: Record<VideoFormat, { width: number; height: number }> = {
   landscape: { width: 1920, height: 1080 },
@@ -62,6 +63,7 @@ export function buildStoryboard(dna: ProductDNA, plan: StoryPlan, options: Launc
     if (s) featureScreens.push(s);
   }
   const features = dna.verified_features;
+  const usedFeatures = new Set<string>();
 
   // ---- Allocate durations ------------------------------------------------------
   const [minScenes, maxScenes] = TONE_PRESETS[tone].scenes;
@@ -101,7 +103,7 @@ export function buildStoryboard(dna: ProductDNA, plan: StoryPlan, options: Launc
       }
       case "reveal": {
         const src = entryScreen ?? heroScreen;
-        const featureLine = features.slice(0, 3).map((f) => f.name.replace(/ API$/, "")).filter((n) => safe(n)).join(" · ");
+        const featureLine = fitList(features.map((f) => f.name).filter((n) => safe(n) && n !== "HTTP API"), 58);
         const taglineUsedInHook = plan.hook.text && dna.tagline.toLowerCase().startsWith(plan.hook.text.toLowerCase().slice(0, 20));
         const taglineWords = dna.tagline.trim().split(/\s+/).length;
         const sub = featureLine && (taglineUsedInHook || taglineWords > 8) ? featureLine : safe(dna.tagline) ? truncate(dna.tagline, 90) : featureLine || undefined;
@@ -113,10 +115,12 @@ export function buildStoryboard(dna: ProductDNA, plan: StoryPlan, options: Launc
         const src = workflowScreens[wi];
         const step = flow?.steps.find((s) => s.screenId === src?.id);
         const feature = features.find((f) => f.route === src?.route);
-        const label = step?.label ?? feature?.name ?? src?.title ?? "In use";
-        const headline = src?.headline && safe(src.headline) && src.headline.toLowerCase() !== label.toLowerCase() ? truncate(src.headline, 60) : undefined;
-        const desc = feature && safe(feature.description) && feature.sources.includes("readme") ? truncate(feature.description, 80) : headline;
+        // A README-named feature beats a generic journey label ("Alert rules" over "Alerts"); journey labels beat page titles.
+        const label = (feature && feature.sources.includes("readme") ? feature.name : undefined) ?? step?.label ?? feature?.name ?? src?.title ?? "In use";
+        const headline = src?.headline && safe(src.headline) && src.headline.toLowerCase() !== label.toLowerCase() ? shortPhrase(src.headline, 60) ?? undefined : undefined;
+        const desc = (feature && feature.sources.includes("readme") && safe(feature.description) ? shortPhrase(bulletTail(feature.description)) ?? undefined : undefined) ?? headline;
         scene = mk(n, t, duration, "workflow", src, truncate(label, 40), desc, motionFor(src, "workflow", options.format), transition, tDur, { intent: "steady bed; a click/tick when the interaction fires", sfx: sfxFor("workflow", tone, options.sfx) });
+        if (feature) usedFeatures.add(feature.id);
         if (step?.action) scene.interaction = { kind: "click", target: step.action.replace(/^click\s*/, "").replace(/"/g, "") };
         scene.motionNotes = motionNotes(scene.motion, src);
         wi++;
@@ -126,8 +130,9 @@ export function buildStoryboard(dna: ProductDNA, plan: StoryPlan, options: Launc
         const src = featureScreens[fi];
         const feature = features.find((f) => f.route === src?.route) ?? features.find((f) => !scenes.some((s) => s.text === f.name)) ?? features[fi];
         const text = feature ? truncate(feature.name, 36) : truncate(src?.title ?? "Feature", 36);
-        const headline = src?.headline && safe(src.headline) && src.headline.toLowerCase() !== text.toLowerCase() ? truncate(src.headline, 60) : undefined;
-        const sub = feature && safe(feature.description) && feature.sources.includes("readme") ? truncate(feature.description, 80) : headline;
+        const headline = src?.headline && safe(src.headline) && src.headline.toLowerCase() !== text.toLowerCase() ? shortPhrase(src.headline, 60) ?? undefined : undefined;
+        const sub = (feature && feature.sources.includes("readme") && safe(feature.description) ? shortPhrase(bulletTail(feature.description)) ?? undefined : undefined) ?? headline;
+        if (feature) usedFeatures.add(feature.id);
         scene = mk(n, t, duration, "feature", src, text, sub, motionFor(src, "feature", options.format), transition, tDur, { intent: "soft drop on the label", sfx: sfxFor("feature", tone, options.sfx) });
         scene.motionNotes = motionNotes(scene.motion, src);
         fi++;
@@ -135,7 +140,7 @@ export function buildStoryboard(dna: ProductDNA, plan: StoryPlan, options: Launc
       }
       case "hero": {
         const src = heroScreen;
-        const heroFeature = features.find((f) => f.route === src?.route) ?? features[0];
+        const heroFeature = features.find((f) => f.route === src?.route && !usedFeatures.has(f.id)) ?? features.find((f) => !usedFeatures.has(f.id) && f.name !== "HTTP API") ?? features.find((f) => f.route === src?.route) ?? features[0];
         const text = heroFeature ? truncate(heroFeature.name, 40) : src?.title ?? dna.name;
         scene = mk(n, t, duration, "hero", src, text, undefined, motionFor(src, "hero", options.format), transition, tDur, { intent: "the one impact of the film lands here", beatLock: true, sfx: sfxFor("hero", tone, options.sfx) });
         scene.motionNotes = `${motionNotes(scene.motion, src)} This is the widest, longest look at the real interface — keep it readable.`;
@@ -150,7 +155,7 @@ export function buildStoryboard(dna: ProductDNA, plan: StoryPlan, options: Launc
     // Readability floor: ensure the scene holds long enough for its text.
     const need = readingTime(scene.text) + (scene.subtext ? readingTime(scene.subtext) : 0) + 0.6;
     if (scene.duration < need) notes.push(`Scene ${scene.scene} (${scene.purpose}) is ${scene.duration}s but its copy needs ~${need.toFixed(1)}s; the composition shortens the subtext instead of speeding it up.`);
-    if (scene.duration < need && scene.subtext) scene.subtext = truncate(scene.subtext, 40);
+    if (scene.duration < need && scene.subtext) scene.subtext = shortPhrase(scene.subtext, 36) ?? undefined;
     scenes.push(scene);
     t = round1(t + duration);
   });
@@ -252,6 +257,17 @@ function sfxFor(purpose: ScenePurpose, tone: TonePreset, enabled: boolean): stri
     default:
       return undefined;
   }
+}
+
+/** Join as many items as fit within `max` characters using " · ". */
+function fitList(items: string[], max: number): string {
+  const out: string[] = [];
+  for (const it of items) {
+    const next = [...out, it].join(" · ");
+    if (next.length > max) break;
+    out.push(it);
+  }
+  return out.join(" · ");
 }
 
 function clamp(n: number, lo: number, hi: number): number {

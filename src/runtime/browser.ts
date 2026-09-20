@@ -1,4 +1,5 @@
 import path from "node:path";
+import { promises as fs } from "node:fs";
 import type { Browser, Page } from "playwright";
 import type { DomSummary, ProgressReporter, Screen, StaticRoute, StyleSample, VideoFormat } from "../types.js";
 import { ensureDir } from "../shared/fs.js";
@@ -168,7 +169,7 @@ async function captureRoutes(browser: Browser, opts: ExploreOptions, viewport: {
           } catch {
             continue;
           }
-          if (SKIP_PATH.test(p) || visited.has(p) || queue.includes(p)) continue;
+          if (SKIP_PATH.test(p) || visited.has(p) || queue.includes(p) || [...visited].some((v) => v.toLowerCase() === p.toLowerCase())) continue;
           if (isAuthRoute(p) && screens.length > 1) continue;
           discoveredVia.set(p, "link");
           queue.push(p);
@@ -213,17 +214,23 @@ async function tryInteraction(page: Page, opts: ExploreOptions, id: string): Pro
       return (good.innerText || good.getAttribute("aria-label") || "").trim().slice(0, 40);
     });
     if (!target) return undefined;
-    const before = page.url();
+    const urlBefore = page.url();
     await page.click("[data-hfl-target='1']", { timeout: 3000 });
     await page.waitForTimeout(900);
-    if (page.url() !== before) {
+    if (page.url() !== urlBefore) {
       await page.goBack({ waitUntil: "domcontentloaded" }).catch(() => {});
       return undefined;
     }
     const file = path.posix.join(opts.assetDir, `${id}-after-click.png`);
-    await page.screenshot({ path: path.join(opts.outputDir, file), type: "png", animations: "disabled" });
+    const after = await page.screenshot({ path: path.join(opts.outputDir, file), type: "png", animations: "disabled" });
     // Close anything we opened.
     await page.keyboard.press("Escape").catch(() => {});
+    // A click that changed nothing visible is not an interaction worth showing.
+    const before = await fs.readFile(path.join(opts.outputDir, opts.assetDir, `${id}.png`)).catch(() => null);
+    if (before && before.equals(after)) {
+      await fs.rm(path.join(opts.outputDir, file), { force: true }).catch(() => {});
+      return undefined;
+    }
     return { action: "click", target, file };
   } catch {
     return undefined;

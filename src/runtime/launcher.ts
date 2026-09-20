@@ -1,8 +1,10 @@
 import path from "node:path";
+import os from "node:os";
+import { createHash } from "node:crypto";
 import { exec, hasCommand, which } from "../shared/exec.js";
 import { exists } from "../shared/fs.js";
 import type { AppCandidate, ProgressReporter, RunCommand } from "../types.js";
-import { findFreePort, startProcess, type ManagedProcess } from "./process-manager.js";
+import { findFreePort, httpAlive, startProcess, type ManagedProcess } from "./process-manager.js";
 import { serveStatic, type StaticServer } from "./static-server.js";
 
 export interface LaunchedApp {
@@ -116,8 +118,12 @@ export async function launchApp(repoRoot: string, app: AppCandidate, opts: Launc
   }
   report({ step: "runtime", status: "start", message: `Starting app: ${[cmd, ...args].join(" ")}` });
   const started = Date.now();
+  // Only our assigned port (plus ports the app prints itself) count — and never a port that was already
+  // serving something before we started, so we can never screenshot an unrelated local server.
+  const preAlive = new Set<number>();
+  for (const p of [port, preferred]) if (await httpAlive(`http://127.0.0.1:${p}/`, 800)) preAlive.add(p);
   const proc: ManagedProcess = startProcess(cmd, args, { cwd, env });
-  const url = await proc.waitForUrl({ candidatePorts: [port, preferred, 3000, 5173, 8000, 8080, 4200, 4321, 5000, 8501, 7860, 8050], timeoutMs: opts.startupTimeoutMs, pathHint: command.openPath });
+  const url = await proc.waitForUrl({ candidatePorts: [port, preferred].filter((p) => !preAlive.has(p)), excludePorts: preAlive, timeoutMs: opts.startupTimeoutMs, pathHint: command.openPath });
   if (!url) {
     const procLogs = [...proc.logs];
     await proc.stop();
@@ -148,7 +154,8 @@ async function resolvePython(cwd: string, opts: LauncherOptions, logs: string[])
   const base = (await which("python")) ?? (await which("python3")) ?? (await which("py"));
   if (!base) return null;
   if (!opts.install) return { python: base };
-  const venv = path.join(cwd, ".hyperframe-launch-venv");
+  // Keep the virtualenv out of the repository (never pollute a local checkout, never get re-scanned).
+  const venv = path.join(os.tmpdir(), "hyperframe-launch", "venvs", createHash("sha1").update(cwd).digest("hex").slice(0, 12));
   const bin = path.join(venv, process.platform === "win32" ? "Scripts" : "bin", process.platform === "win32" ? "python.exe" : "python");
   if (exists(bin)) return { python: bin, venv };
   const res = await exec(base, ["-m", "venv", venv], { cwd, timeoutMs: 120_000 });

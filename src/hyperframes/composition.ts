@@ -4,6 +4,7 @@ import { sfxAssetPath, type AudioData } from "../audio/index.js";
 import type { MusicSelection, ProductDNA, Scene, SfxSelection, Storyboard, VisualSystem } from "../types.js";
 import { ensureContrast, isDark, mix, parseColor, rgbaString, readableTextOn } from "../shared/color.js";
 import { escapeHtml } from "../shared/text.js";
+import { isGoogleFont } from "../ui/design-system.js";
 import { copyFile, ensureDir, writeText } from "../shared/fs.js";
 
 /**
@@ -83,6 +84,11 @@ export async function buildComposition(input: CompositionInput): Promise<{ index
   }
   const displayStack = resolveStack(vs.typography.display, vs.typography.displayStack, fontFamilies);
   const bodyStack = resolveStack(vs.typography.body, vs.typography.bodyStack, fontFamilies);
+  // Named Google Fonts in the stacks are declared through a fonts.googleapis.com link so Hyperframes can
+  // resolve them (lint: font_family_without_font_face) and the video keeps the product's real typography.
+  const googleFamilies = Array.from(new Set([displayStack, bodyStack].flatMap((st) => st.match(/"([^"]+)"/g) ?? []).map((q) => q.replace(/"/g, "")).filter((f) => !f.startsWith("HFL ") && isGoogleFont(f))));
+  const googleLink = googleFamilies.length ? `<link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?${googleFamilies.map((f) => `family=${encodeURIComponent(f).replace(/%20/g, "+")}:wght@400;600;700;800`).join("&")}&display=swap" />` : "";
 
   // ---- Palette ----------------------------------------------------------------------
   const p = palette(vs);
@@ -269,6 +275,7 @@ export async function buildComposition(input: CompositionInput): Promise<{ index
     <meta name="viewport" content="width=${W}, height=${H}" />
     <title>${escapeHtml(dna.name)} — launch video</title>
     <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    ${googleLink}
     <style>${css}</style>
   </head>
   <body>

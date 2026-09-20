@@ -9,7 +9,7 @@ export interface ManagedProcess {
   exited: boolean;
   exitCode: number | null;
   stop(): Promise<void>;
-  waitForUrl(opts: { candidatePorts: number[]; timeoutMs: number; pathHint?: string }): Promise<string | null>;
+  waitForUrl(opts: { candidatePorts: number[]; excludePorts?: Set<number>; timeoutMs: number; pathHint?: string }): Promise<string | null>;
 }
 
 const MAX_LOG_LINES = 400;
@@ -53,20 +53,21 @@ export function startProcess(cmd: string, args: string[], opts: { cwd: string; e
       killTree(child);
       await new Promise((r) => setTimeout(r, 800));
     },
-    async waitForUrl({ candidatePorts, timeoutMs, pathHint }) {
+    async waitForUrl({ candidatePorts, excludePorts, timeoutMs, pathHint }) {
       const deadline = Date.now() + timeoutMs;
       const ports = new Set(candidatePorts);
+      const excluded = excludePorts ?? new Set<number>();
       while (Date.now() < deadline) {
         if (state.exited) return null;
-        // 1. URL printed to the console
+        // 1. URL printed to the console (the app's own announcement of where it listens)
         for (const line of logs.slice(-60)) {
           const m = line.match(/https?:\/\/(?:localhost|127\.0\.0\.1|0\.0\.0\.0|\[::1?\])(?::(\d{2,5}))?(\/\S*)?/i);
           if (m) {
             const port = m[1] ? +m[1] : 80;
-            ports.add(port);
+            if (!excluded.has(port)) ports.add(port);
           }
           const p = line.match(/(?:port|listening on|running on|started on)[^\d]{0,20}(\d{4,5})\b/i);
-          if (p) ports.add(+p[1]);
+          if (p && !excluded.has(+p[1])) ports.add(+p[1]);
         }
         // 2. Probe candidate ports
         for (const port of ports) {

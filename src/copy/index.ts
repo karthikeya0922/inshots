@@ -20,7 +20,7 @@ export function generateShareCopy(dna: ProductDNA, plan: StoryPlan, repoUrl: str
   const ok = (s: string) => isSafeCopy(s, claims) && !containsBannedPhrase(s);
   const name = dna.name;
   const tagline = dna.tagline && ok(dna.tagline) ? dna.tagline.replace(/\.$/, "") : `a ${dna.category}`;
-  const features = dna.verified_features.filter((f) => ok(f.name)).slice(0, 4).map((f) => f.name.replace(/ API$/, ""));
+  const features = dna.verified_features.filter((f) => ok(f.name) && f.name !== "HTTP API").slice(0, 4).map((f) => f.name);
   const stack = [...dna.stack.frontend.slice(0, 2), ...dna.stack.backend.slice(0, 1), ...dna.stack.database.slice(0, 1), ...dna.stack.ai.slice(0, 1)].filter(Boolean);
   const link = /^https?:\/\//.test(repoUrl) ? repoUrl : "";
   const realUi = dna.runtime.status === "ok";

@@ -9,9 +9,20 @@ import { topN } from "../shared/text.js";
  * repository's CSS tokens. Confidence is reported; we never force a style.
  */
 
-const SYSTEM_SANS = "ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif";
-const SYSTEM_MONO = "ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace";
-const SYSTEM_SERIF = "ui-serif, Georgia, 'Times New Roman', serif";
+// Only generic families here: Hyperframes' lint requires an @font-face for any *named* family it cannot
+// auto-resolve, and it auto-resolves Google Fonts by name — see GOOGLE_FONTS below.
+const SYSTEM_SANS = "system-ui, sans-serif";
+const SYSTEM_MONO = "ui-monospace, monospace";
+const SYSTEM_SERIF = "ui-serif, serif";
+
+/** Google Fonts families Hyperframes can fetch by name — using them preserves the product's real typography. */
+const GOOGLE_FONTS = new Set([
+  "inter", "roboto", "open sans", "lato", "montserrat", "poppins", "source sans 3", "source sans pro", "nunito", "nunito sans", "raleway", "work sans", "dm sans", "manrope", "figtree", "plus jakarta sans", "outfit", "space grotesk", "sora", "urbanist", "lexend", "rubik", "karla", "mulish", "ibm plex sans", "ibm plex mono", "ibm plex serif", "jetbrains mono", "fira code", "fira sans", "source code pro", "roboto mono", "space mono", "dm mono", "playfair display", "merriweather", "lora", "libre baskerville", "crimson pro", "fraunces", "eb garamond", "cormorant garamond", "bricolage grotesque", "geist", "geist mono", "instrument sans", "instrument serif", "onest", "archivo", "barlow", "cabin", "quicksand", "josefin sans", "oswald", "bebas neue", "anton", "syne", "unbounded", "chivo", "public sans", "red hat display", "red hat text", "libre franklin", "noto sans", "noto serif", "pt sans", "pt serif", "ubuntu", "ubuntu mono", "titillium web", "exo 2", "kanit", "prompt", "hind", "heebo", "assistant", "be vietnam pro", "albert sans", "schibsted grotesk", "hanken grotesk", "gabarito", "atkinson hyperlegible", "spectral", "newsreader", "literata", "zilla slab", "roboto slab", "bitter", "domine", "vollkorn", "recursive", "commissioner", "epilogue", "jost", "nunito", "mona sans", "hubot sans", "overpass", "questrial", "varela round", "comfortaa", "righteous", "pacifico", "caveat", "dancing script", "courier prime", "inconsolata", "overpass mono", "victor mono", "azeret mono", "martian mono", "chivo mono",
+]);
+
+export function isGoogleFont(family: string): boolean {
+  return GOOGLE_FONTS.has(family.trim().toLowerCase().replace(/["']/g, ""));
+}
 
 export function analyzeUI(runtime: RuntimeAnalysis, tokens: DesignTokens): UIAnalysis {
   const screens = runtime.screens;
@@ -257,9 +268,13 @@ function share(rec: Record<string, number>, pred: (k: string) => boolean): numbe
   return total ? hit / total : 0;
 }
 
-/** Map a detected family to a CSS stack that renders without shipping font files. */
+/** Map a detected family to a CSS stack: the real family when Hyperframes can resolve it, else a generic stack. */
 export function stackFor(family: string): string {
-  const f = family.toLowerCase();
+  const f = family.toLowerCase().replace(/["']/g, "").trim();
+  if (isGoogleFont(f)) {
+    const generic = /mono/.test(f) ? SYSTEM_MONO : /serif|playfair|merriweather|lora|garamond|fraunces|spectral|newsreader|literata|domine|vollkorn|bitter|slab/.test(f) && !/sans/.test(f) ? SYSTEM_SERIF : SYSTEM_SANS;
+    return `"${family.replace(/["']/g, "").trim()}", ${generic}`;
+  }
   if (/mono|code|courier|consolas|menlo|fira code|jetbrains|source code|ibm plex mono|roboto mono/.test(f)) return SYSTEM_MONO;
   if (/serif|georgia|times|playfair|merriweather|lora|garamond|crimson|fraunces|libre baskerville|spectral|newsreader/.test(f) && !/sans/.test(f)) return SYSTEM_SERIF;
   return SYSTEM_SANS;
