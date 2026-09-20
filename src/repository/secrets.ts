@@ -76,9 +76,10 @@ export function redactSecrets(text: string): RedactionResult {
     out = out.replace(re, (...m: string[]) => {
       count++;
       kinds.add(name);
-      if (name === "assignment") return `${m[1]}[REDACTED:${name}]`;
-      if (name === "url-credentials") return `${m[1]}://[REDACTED:${name}]@`;
-      return `[REDACTED:${name}]`;
+      // Placeholders contain no ':' or '@' so they can never re-match a credential pattern.
+      if (name === "assignment") return `${m[1]}[REDACTED_${name}]`;
+      if (name === "url-credentials") return `${m[1]}://[REDACTED_${name}]@`;
+      return `[REDACTED_${name}]`;
     });
   }
   return { text: out, count, kinds: Array.from(kinds) };

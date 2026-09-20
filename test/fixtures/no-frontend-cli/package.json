@@ -1,0 +1,9 @@
+{
+  "name": "csvkit-js",
+  "version": "1.4.0",
+  "description": "Command-line toolkit for slicing, joining and summarising CSV files.",
+  "bin": { "csvkit": "./dist/cli.js" },
+  "main": "./dist/index.js",
+  "scripts": { "build": "tsc", "test": "node --test" },
+  "devDependencies": { "typescript": "^5.6.0" }
+}

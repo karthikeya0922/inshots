@@ -426,7 +426,7 @@ export function detectFrameworks(scan: ScanResult): FrameworkDetection {
 
 function detectNodePackageManager(scan: ScanResult, dir: string): AppCandidate["packageManager"] | undefined {
   const j = (f: string) => (dir ? `${dir}/${f}` : f);
-  if (scan.byRel.has(j("pnpm-lock.yaml"))) return "pnpm";
+  if (scan.byRel.has(j("pnpm-lock.yaml")) || scan.byRel.has(j("pnpm-workspace.yaml"))) return "pnpm";
   if (scan.byRel.has(j("yarn.lock"))) return "yarn";
   if (scan.byRel.has(j("bun.lockb")) || scan.byRel.has(j("bun.lock"))) return "bun";
   if (scan.byRel.has(j("package-lock.json"))) return "npm";

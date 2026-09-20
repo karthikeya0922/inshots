@@ -1,7 +1,7 @@
 import path from "node:path";
 import { walk, readText, type WalkEntry } from "../shared/fs.js";
 import { isSecretFile, isSecretTemplateFile, redactSecrets } from "./secrets.js";
-import { stripMarkdown } from "../shared/text.js";
+import { looksLikeMetric, stripMarkdown } from "../shared/text.js";
 import type { DesignTokens, ReadmeSummary } from "../types.js";
 
 export interface ScannedFile extends WalkEntry {
@@ -75,7 +75,7 @@ export async function scanRepository(root: string, opts: { maxFiles?: number } =
       continue;
     }
 
-    if (TEXT_EXT.has(e.ext) || base.toLowerCase().startsWith("dockerfile") || IMPORTANT_NAMES.includes(base)) {
+    if (TEXT_EXT.has(e.ext) || base.toLowerCase().startsWith("dockerfile") || IMPORTANT_NAMES.includes(base) || /^(LICENSE|LICENCE|COPYING|NOTICE|Procfile|Makefile)/i.test(base)) {
       if (e.size <= 400 * 1024 && !/\.(min|bundle)\.(js|css)$/.test(base) && !/(^|\/)(package-lock\.json|pnpm-lock\.yaml|yarn\.lock)$/.test(e.rel)) {
         const raw = await readText(e.abs, 400 * 1024);
         const red = redactSecrets(raw);
@@ -217,10 +217,12 @@ export function parseReadme(md: string): ReadmeSummary {
   summary.featureBullets = summary.featureBullets.slice(0, 20);
 
   // Metric-looking claims
-  const metricRe = /[^.\n]*\b(\d[\d,.]*\s?(%|x|k\+?|m\+?|ms|users|customers|downloads|stars|companies|teams|developers|requests|accuracy|faster|uptime)\b)[^.\n]*/gi;
-  for (const m of md.matchAll(metricRe)) {
-    const s = stripMarkdown(m[0]).trim();
-    if (s.length > 8 && s.length < 200 && !/shields|badge|http/.test(s)) summary.metricClaims.push(s);
+  for (const line of lines) {
+    if (/^\s*(```|\||<|!\[|\[!\[)/.test(line) || /shields|badge|http/.test(line)) continue;
+    for (const sentence of stripMarkdown(line.replace(/^\s*[-*+]\s+|^\s*\d+\.\s+/, "")).split(/(?<=[.!?])\s+/)) {
+      const s = sentence.trim();
+      if (s.length > 8 && s.length < 200 && looksLikeMetric(s)) summary.metricClaims.push(s);
+    }
   }
   summary.metricClaims = Array.from(new Set(summary.metricClaims)).slice(0, 10);
 

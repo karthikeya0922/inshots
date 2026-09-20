@@ -1,0 +1,1 @@
+{ "name": "@acme/web", "private": true, "scripts": { "dev": "vite --port 5174", "build": "vite build" }, "dependencies": { "react": "^18.3.0", "react-dom": "^18.3.0", "vue": "^3.4.0" }, "devDependencies": { "vite": "^5.4.0" } }
