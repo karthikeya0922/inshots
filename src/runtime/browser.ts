@@ -1,6 +1,7 @@
 import path from "node:path";
 import { promises as fs } from "node:fs";
 import type { Browser, Page } from "playwright";
+import { launchChromium } from "../shared/browser-launch.js";
 import type { DomSummary, ProgressReporter, Screen, StaticRoute, StyleSample, VideoFormat } from "../types.js";
 import { ensureDir } from "../shared/fs.js";
 import { slugify } from "../shared/text.js";
@@ -33,14 +34,13 @@ const SKIP_LINK = /^(mailto:|tel:|javascript:|#|data:)/i;
 const SKIP_PATH = /(logout|sign-?out|delete|remove|destroy|\.pdf$|\.zip$|\.png$|\.jpg$|\.svg$|\/api\/|\/_next\/|\/static\/|\/assets\/|\/cdn-cgi\/)/i;
 
 export async function exploreApp(opts: ExploreOptions): Promise<ExploreResult> {
-  const { chromium } = await import("playwright");
   const warnings: string[] = [];
   const report = opts.report ?? (() => {});
   let browser: Browser;
   try {
-    browser = await chromium.launch({ headless: true, args: ["--disable-gpu", "--no-sandbox", "--disable-dev-shm-usage"] });
+    browser = await launchChromium(["--disable-gpu", "--no-sandbox", "--disable-dev-shm-usage"]);
   } catch (err) {
-    throw new Error(`Playwright Chromium could not start: ${(err as Error).message}. Run: npx playwright install chromium`);
+    throw new Error(`Playwright Chromium could not start: ${(err as Error).message}`);
   }
   try {
     const screens = await exploreViewport(browser, opts, DESKTOP, "desktop", warnings, report);

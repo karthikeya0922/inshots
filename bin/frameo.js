@@ -1,2 +1,4 @@
 #!/usr/bin/env node
-import "../dist/connector/cli.js";
+import { ensureReady } from "./_bootstrap.js";
+ensureReady("cli.js");
+await import("../dist/connector/cli.js");

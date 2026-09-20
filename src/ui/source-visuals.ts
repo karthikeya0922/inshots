@@ -1,4 +1,5 @@
 import path from "node:path";
+import { launchChromium } from "../shared/browser-launch.js";
 import type { RepositoryAnalysis, RuntimeAnalysis } from "../types.js";
 import type { ScanResult } from "../repository/scanner.js";
 import { ensureDir } from "../shared/fs.js";
@@ -19,14 +20,13 @@ export interface SourceVisualOptions {
 }
 
 export async function renderSourceVisuals(scan: ScanResult, analysis: RepositoryAnalysis, opts: SourceVisualOptions): Promise<RuntimeAnalysis["sourceDerived"]> {
-  const { chromium } = await import("playwright");
   const dir = path.join(opts.outputDir, opts.assetDir);
   await ensureDir(dir);
   const picks = pickSourceFiles(scan, analysis);
   const out: RuntimeAnalysis["sourceDerived"] = [];
   let browser;
   try {
-    browser = await chromium.launch({ headless: true, args: ["--disable-gpu", "--no-sandbox"] });
+    browser = await launchChromium(["--disable-gpu", "--no-sandbox"]);
   } catch {
     return out;
   }

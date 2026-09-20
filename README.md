@@ -6,6 +6,13 @@
 /frameo https://github.com/user/project
 ```
 
+Install in Claude Code in two lines (details in [Add Frameo to Claude](#add-frameo-to-claude-any-machine-any-account)):
+
+```
+/plugin marketplace add karthikeya0922/inshots
+/plugin install frameo@frameo
+```
+
 Frameo is a connector/plugin for AI agents (MCP server + Claude Code skill + CLI) with a single
 command, `/frameo`. Give it a repository and it clones the code, understands the codebase, **runs the application**,
 explores it in a real browser, captures the actual screens, analyzes the UI/UX, verifies every
@@ -84,41 +91,107 @@ Launch Video + Share Copy                                     src/copy/, src/out
 Every stage writes JSON/Markdown to `frameo-output/`; the artifacts are the contract between
 modules, so any module can be replaced.
 
-## Install
+## Add Frameo to Claude (any machine, any account)
 
-Requirements: Node ≥ 22, FFmpeg on PATH, Hyperframes (`npx hyperframes` — installed on first
-use), Playwright Chromium (`npx playwright install chromium`). Python 3 is needed only to run
-Python projects; git only to clone remote repositories.
+Frameo is a normal Claude Code plugin. Nothing is tied to this machine — anyone can install it
+from the public repo in about a minute. On first use it installs its own dependencies, builds
+itself and downloads Chromium, so there is no manual build step.
+
+**Requirements:** [Node.js 22+](https://nodejs.org), [Git](https://git-scm.com), and
+[FFmpeg](https://ffmpeg.org/download.html) on your PATH (`ffmpeg -version` should work).
+Hyperframes is fetched automatically through `npx` on the first render. Python 3 is needed only
+to run Python projects.
+
+### Option A — install as a plugin (recommended)
+
+Inside Claude Code (terminal, desktop app or VS Code extension) run:
+
+```
+/plugin marketplace add karthikeya0922/inshots
+/plugin install frameo@frameo
+```
+
+Restart Claude Code (or run `/mcp` and reconnect). Then:
+
+```
+/frameo https://github.com/user/project
+```
+
+The first `/frameo` takes an extra minute while the plugin sets itself up; after that the
+`frameo` MCP tool and the `/frameo` skill are ready every session. Update later with
+`/plugin update frameo`.
+
+### Option B — clone and register it yourself
 
 ```bash
-git clone <this repo> frameo
+git clone https://github.com/karthikeya0922/inshots.git frameo
 cd frameo
-npm install
-npx playwright install chromium
-npm run build
+npm run setup            # optional: does install + Chromium + build now instead of on first run
 ```
 
-### As a Claude Code plugin / MCP server
-
-`.claude-plugin/plugin.json` + `.mcp.json` register the `frameo` MCP server and the
-`/frameo` skill. There is exactly one command and one tool:
-
-| Tool | Purpose |
-|---|---|
-| `frameo` | the whole pipeline; returns output dir, step summary, quality gate, storyboard |
-
-Run the server directly: `node bin/frameo-mcp.js` (stdio).
-
-### CLI
+Register the MCP server (user scope so every project sees it) and the skill:
 
 ```bash
-frameo https://github.com/user/project
-frameo https://github.com/user/project --tone cinematic --platform linkedin
-frameo . --format vertical
-frameo owner/repo --tone "minimal Apple-style" --no-sfx
+# MCP server
+claude mcp add --scope user frameo -- node /absolute/path/to/frameo/bin/frameo-mcp.js
+
+# Skill  (macOS / Linux)
+ln -s /absolute/path/to/frameo/skills/frameo ~/.claude/skills/frameo
+# Skill  (Windows PowerShell)
+New-Item -ItemType Junction -Path "$HOME\.claude\skills\frameo" -Target "C:\path\to\frameo\skills\frameo"
 ```
 
-`npm run dev -- <repo>` runs it from source via `tsx`.
+Or, without registering anything, load it for one session:
+
+```bash
+claude --plugin-dir /absolute/path/to/frameo
+```
+
+### Option C — any other MCP client (Cursor, Windsurf, Claude Desktop, …)
+
+Add this to the client's MCP config after cloning:
+
+```json
+{
+  "mcpServers": {
+    "frameo": {
+      "command": "node",
+      "args": ["/absolute/path/to/frameo/bin/frameo-mcp.js"],
+      "env": { "HYPERFRAMES_SKIP_SKILLS": "1" }
+    }
+  }
+}
+```
+
+The single tool is `frameo({ repository_url, ...options })`.
+
+### Option D — plain CLI, no agent
+
+```bash
+git clone https://github.com/karthikeya0922/inshots.git frameo && cd frameo
+node bin/frameo.js https://github.com/user/project
+node bin/frameo.js https://github.com/user/project --tone cinematic --platform linkedin
+node bin/frameo.js . --format vertical
+```
+
+(`npm link` makes it available as `frameo` globally; `npm run dev -- <repo>` runs from source.)
+
+### Verify
+
+- `/mcp` in Claude Code lists `frameo` as connected.
+- `/frameo` (no arguments) prints the usage line.
+- `node bin/frameo.js --help` works from the clone.
+
+### Troubleshooting
+
+| Symptom | Fix |
+|---|---|
+| `frameo` shows **failed to connect** the first time | The first launch is installing + building; wait a minute, then `/mcp` → reconnect (or run `npm run setup` in the plugin folder). |
+| `Node … is too old` | Install Node 22+ and restart Claude Code. |
+| `ffmpeg` not found / no `poster.png` | Install FFmpeg and make sure it is on PATH. |
+| `Playwright Chromium could not be installed` | Run `npx playwright install chromium` in the plugin folder (corporate proxies can block the download). |
+| `render-status.json` says Hyperframes is unavailable | `npm i -g hyperframes`, then run `/frameo` again — Frameo never fakes a render. |
+| Where did Option A put it? | Under `~/.claude/plugins/` — `/plugin` → Manage shows the exact path. |
 
 ## Options
 

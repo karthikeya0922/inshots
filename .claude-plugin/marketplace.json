@@ -1,0 +1,16 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "frameo",
+  "description": "Frameo — /frameo turns any GitHub repository into a 30-second launch video built from its real, running UI.",
+  "owner": { "name": "Karthikeya Gupta" },
+  "plugins": [
+    {
+      "name": "frameo",
+      "description": "One command, /frameo <repo>: clone, run the app, capture the real UI with Playwright, verify every claim, render a 30-second launch video with Hyperframes, and write share copy.",
+      "source": "./",
+      "category": "productivity",
+      "keywords": ["video", "launch", "hyperframes", "playwright", "mcp", "repository-analysis"],
+      "homepage": "https://github.com/karthikeya0922/inshots"
+    }
+  ]
+}

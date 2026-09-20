@@ -36,7 +36,8 @@ That is the whole interaction. Options exist but are never required:
    ```
    frameo({ repository_url: "<repo>", ...any flags the user gave })
    ```
-   Otherwise run the CLI from this plugin's root (run `npm install && npm run build` there once):
+   If the `frameo` server is not connected, run the CLI from this plugin's root instead (it
+   installs its own dependencies and builds itself on first run):
    ```bash
    node <plugin-root>/bin/frameo.js <repo> [flags]
    ```

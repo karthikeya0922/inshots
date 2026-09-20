@@ -1,2 +1,4 @@
 #!/usr/bin/env node
-import "../dist/connector/mcp-server.js";
+import { ensureReady } from "./_bootstrap.js";
+ensureReady("mcp-server.js");
+await import("../dist/connector/mcp-server.js");

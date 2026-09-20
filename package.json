@@ -22,6 +22,7 @@
   ],
   "scripts": {
     "build": "tsc -p tsconfig.json",
+    "setup": "npm install --no-audit --no-fund && npx playwright install chromium && npm run build",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "dev": "tsx src/connector/cli.ts",
     "mcp": "tsx src/connector/mcp-server.ts",
@@ -39,5 +40,10 @@
     "@types/node": "^22.15.0",
     "tsx": "^4.19.0",
     "typescript": "^5.8.0"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/karthikeya0922/inshots.git"
+  },
+  "homepage": "https://github.com/karthikeya0922/inshots"
 }
