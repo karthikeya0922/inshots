@@ -1,0 +1,43 @@
+{
+  "name": "hyperframe-launch",
+  "version": "0.1.0",
+  "description": "Hyperframe Launch — turn a GitHub repository into a launch video built from its real, running UI. Deep repository intelligence + runtime/browser exploration + UI/UX analysis + verified storytelling + Hyperframes rendering.",
+  "type": "module",
+  "license": "MIT",
+  "engines": {
+    "node": ">=22"
+  },
+  "bin": {
+    "hyperframe-launch": "./bin/hyperframe-launch.js",
+    "hyperframe-launch-mcp": "./bin/hyperframe-launch-mcp.js"
+  },
+  "files": [
+    "bin",
+    "dist",
+    "assets",
+    "skills",
+    ".claude-plugin",
+    ".mcp.json",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "dev": "tsx src/connector/cli.ts",
+    "mcp": "tsx src/connector/mcp-server.ts",
+    "test": "tsx --test test/*.test.ts",
+    "test:e2e": "HYPERFRAME_LAUNCH_E2E=1 tsx --test test/e2e/*.test.ts",
+    "lint": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.12.0",
+    "playwright": "^1.52.0",
+    "smol-toml": "^1.3.1",
+    "zod": "^3.24.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.8.0"
+  }
+}

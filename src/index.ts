@@ -1,0 +1,16 @@
+export { createLaunchVideo, renderExisting, withDefaults, PLATFORM_PRESETS } from "./connector/pipeline.js";
+export { cloneRepository, analyzeRepository, scanRepository, detectFrameworks, analyzeFeatures } from "./repository/index.js";
+export { launchApp, exploreApp } from "./runtime/index.js";
+export { analyzeUI, staticUIAnalysis } from "./ui/design-system.js";
+export { verifyClaims, isSafeCopy } from "./intelligence/claim-verifier.js";
+export { buildProductDNA } from "./intelligence/product-dna.js";
+export { buildStoryPlan, resolveTone } from "./intelligence/story-engine.js";
+export { analyzeFlows } from "./intelligence/flows.js";
+export { buildStoryboard, motionFor, storyboardMarkdown } from "./storyboard/index.js";
+export { buildComposition } from "./hyperframes/composition.js";
+export { renderComposition, runCheck, hyperframesVersion } from "./hyperframes/renderer.js";
+export { selectMusic, analyzeBeats, extractAudioData, alignScenesToMusic, placeSfx } from "./audio/index.js";
+export { generateShareCopy } from "./copy/index.js";
+export { runQualityGate, summaryLines } from "./output/index.js";
+export { redactSecrets, isSecretFile } from "./repository/secrets.js";
+export type * from "./types.js";

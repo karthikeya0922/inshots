@@ -1,0 +1,11 @@
+node_modules/
+dist/
+launch-output*/
+.hyperframe-launch/
+test/fixtures/**/node_modules/
+test/fixtures/**/.venv/
+test/fixtures/**/dist/
+test/fixtures/**/.next/
+*.log
+.DS_Store
+test/fixtures/**/.env
