@@ -1,6 +1,8 @@
 import { promises as fs, existsSync, statSync } from "node:fs";
 import path from "node:path";
 
+const GENERATED_DIR = /(^\.?venv$|-venv$|^site-packages$|^\.tox$|^\.nox$|^virtualenv$|^\.frameo|^frameo-output|^__fixtures__$|^fixtures$|^__snapshots__$|^testdata$|^__mocks__$)/;
+
 export const IGNORED_DIRS = new Set([
   "node_modules",
   ".git",
@@ -71,7 +73,8 @@ export async function walk(root: string, opts: WalkOptions = {}): Promise<WalkEn
     for (const entry of entries) {
       const abs = path.join(dir, entry.name);
       if (entry.isDirectory()) {
-        if (ignore.has(entry.name) || entry.name.startsWith(".git") || /(^\.?venv|-venv$|^site-packages$|^\.tox$|^\.nox$|^virtualenv$|^\.frameo)/.test(entry.name)) continue;
+        // Also skip virtualenvs, Frameo's own output folders, and test fixture trees (fixture apps are not the product).
+        if (ignore.has(entry.name) || entry.name.startsWith(".git") || GENERATED_DIR.test(entry.name)) continue;
         if (depth < maxDepth) queue.push({ dir: abs, depth: depth + 1 });
       } else if (entry.isFile()) {
         let size = 0;

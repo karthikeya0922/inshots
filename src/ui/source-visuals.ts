@@ -95,16 +95,23 @@ function bestSnippet(content: string, rel: string): string {
   return slice.join("\n");
 }
 
-const KEYWORDS = /\b(import|from|export|default|function|return|const|let|var|class|extends|async|await|if|else|for|while|def|self|None|True|False|try|except|with|as|new|this|interface|type|enum|public|private|static|void|fn|pub|struct|impl|match|use|package|func|go|defer|lambda|yield|in|not|and|or|is|elif|pass|raise|switch|case|break|continue)\b/g;
+const KEYWORDS = new Set("import from export default function return const let var class extends async await if else for while def self None True False try except with as new this interface type enum public private static void fn pub struct impl match use package func go defer lambda yield in not and or is elif pass raise switch case break continue".split(" "));
+
+// One tokenizing pass: strings, comments, words and numbers are matched on the raw source so a
+// replacement can never re-match text inserted by an earlier replacement.
+const TOKEN = /("(?:[^"\\\n]|\\.)*"|'(?:[^'\\\n]|\\.)*'|`(?:[^`\\]|\\.)*`)|(\/\/[^\n]*|#(?!\w)[^\n]*)|([A-Za-z_$][\w$]*)|(\b\d+(?:\.\d+)?\b)|([^\s"'`#\/A-Za-z_$\d]+|\s+|[\/#])/g;
 
 export function highlight(code: string, accent: string, text: string): string {
-  const esc = escapeHtml(code);
-  const muted = "opacity:.55";
-  return esc
-    .replace(/(&quot;.*?&quot;|&#39;.*?&#39;|`.*?`)/g, `<span style="color:${accent}">$1</span>`)
-    .replace(/(\/\/.*$|#(?!\w).*$)/gm, `<span style="${muted}">$1</span>`)
-    .replace(KEYWORDS, `<span style="color:${text};font-weight:700">$1</span>`)
-    .replace(/\b(\d+(\.\d+)?)\b/g, `<span style="color:${accent}">$1</span>`);
+  let out = "";
+  for (const m of code.matchAll(TOKEN)) {
+    const [raw, str, comment, word, num] = m;
+    if (str !== undefined) out += `<span style="color:${accent}">${escapeHtml(str)}</span>`;
+    else if (comment !== undefined) out += `<span style="opacity:.55">${escapeHtml(comment)}</span>`;
+    else if (word !== undefined) out += KEYWORDS.has(word) ? `<span style="color:${text};font-weight:700">${word}</span>` : word;
+    else if (num !== undefined) out += `<span style="color:${accent}">${num}</span>`;
+    else out += escapeHtml(raw);
+  }
+  return out;
 }
 
 export function codeCardHtml(rel: string, snippet: string, language: string, p: SourceVisualOptions["palette"]): string {
@@ -114,12 +121,12 @@ export function codeCardHtml(rel: string, snippet: string, language: string, p: 
   const gutter = lines.map((_, i) => `<span>${i + 1}</span>`).join("");
   return `<!doctype html><html><head><meta charset="utf-8"><style>
   html,body{margin:0;width:1440px;height:900px;background:${p.background};color:${p.text};font-family:${p.mono};overflow:hidden}
-  .wrap{position:absolute;inset:60px 90px;display:flex;flex-direction:column;border-radius:18px;background:${p.surface};border:1px solid ${border};box-shadow:0 30px 80px rgba(0,0,0,${dark ? ".45" : ".18"});overflow:hidden}
+  .wrap{position:absolute;inset:0;display:flex;flex-direction:column;background:${p.surface};overflow:hidden}
   .bar{display:flex;align-items:center;gap:10px;padding:16px 22px;border-bottom:1px solid ${border};font-size:16px;font-family:system-ui,sans-serif}
   .dot{width:12px;height:12px;border-radius:50%;background:${border}} .dot:first-child{background:${p.accent}}
   .path{opacity:.75;margin-left:8px}
   .lang{margin-left:auto;font-size:13px;padding:3px 10px;border-radius:99px;background:${p.accent};color:${dark ? "#0b0f14" : "#fff"};font-weight:600}
-  .body{display:flex;flex:1;padding:24px 0;font-size:22px;line-height:1.5}
+  .body{display:flex;flex:1;padding:28px 0;font-size:24px;line-height:1.55}
   .gutter{display:flex;flex-direction:column;padding:0 22px;opacity:.35;text-align:right;user-select:none}
   pre{margin:0;white-space:pre;overflow:hidden;flex:1;padding-right:24px}
   </style></head><body><div class="wrap">

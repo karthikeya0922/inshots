@@ -124,9 +124,11 @@ export async function buildComposition(input: CompositionInput): Promise<{ index
     parts.push(`<section id="${id}" class="clip scene scene-${scene.purpose}" data-start="${t0}" data-duration="${d}" data-track-index="${s}">`);
     parts.push(`<div id="${id}-stage" class="stage">`);
     if (imgRel && geo.shot) {
-      const frameCls = useMobile ? "shot phone" : "shot";
+      // Source cards already carry their own window bar — never wrap them in a second chrome.
+      const bare = useMobile || scene.sourceKind === "source-card";
+      const frameCls = useMobile ? "shot phone" : bare ? "shot bare" : "shot";
       parts.push(`<div id="${id}-shot" class="${frameCls}" style="left:${geo.shot.x}px;top:${geo.shot.y}px;width:${geo.shot.w}px;height:${geo.shot.h}px">`);
-      if (!useMobile) parts.push(`<div class="chrome"><span></span><span></span><span></span><i data-layout-ignore>${escapeHtml(routeLabel(scene, dna))}</i></div>`);
+      if (!bare) parts.push(`<div class="chrome"><span></span><span></span><span></span><i data-layout-ignore>${escapeHtml(routeLabel(scene, dna))}</i></div>`);
       parts.push(`<div id="${id}-cam" class="cam"><img id="${id}-img" class="ui" src="${imgRel}" alt="" />${afterRel ? `<img id="${id}-after" class="ui after" src="${afterRel}" alt="" />` : ""}</div>`);
       if (scene.purpose === "hook") parts.push(`<div class="dim"></div>`);
       if (afterRel) parts.push(`<div id="${id}-cursor" class="cursor"><b></b></div>`);
@@ -250,7 +252,7 @@ export async function buildComposition(input: CompositionInput): Promise<{ index
   .shot .chrome i{font-style:normal;font-size:15px;color:${p.mutedText};margin-left:10px;letter-spacing:.01em;font-family:${bodyStack}}
   .shot .cam{position:absolute;left:0;top:40px;right:0;bottom:0;overflow:hidden;will-change:transform}
   .shot.phone{border-radius:44px;border:10px solid ${vs.colors.mode === "dark" ? "#0a0a0a" : "#111"};background:#000}
-  .shot.phone .cam{top:0}
+  .shot.phone .cam,.shot.bare .cam{top:0}
   .shot .ui{display:block;width:100%;height:auto}
   .shot .ui.after{position:absolute;left:0;top:0;opacity:0}
   .shot .dim{position:absolute;inset:0;background:${rgbaString(parseColor(p.background)!, 0.55)}}

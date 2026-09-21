@@ -52,9 +52,16 @@ export function buildProductDNA(analysis: RepositoryAnalysis, runtime: RuntimeAn
 }
 
 function inferCategory(a: RepositoryAnalysis, r: RuntimeAnalysis, ui: UIAnalysis): string {
-  const text = `${a.name} ${a.description} ${a.readme.headings.join(" ")} ${a.features.map((f) => f.name).join(" ")}`.toLowerCase();
+  // What the product *says it is* (name, description, tagline) outranks section headings and
+  // feature names: a README with a "Security" section is not a security product.
+  const core = `${a.name} ${a.description} ${a.readme.tagline ?? ""}`.toLowerCase();
+  const text = `${core} ${a.readme.headings.join(" ")} ${a.features.map((f) => f.name).join(" ")}`.toLowerCase();
   const has = (re: RegExp) => re.test(text);
-  if (has(/(risk|fraud|compliance|audit|security|threat|vulnerab|gateway|zero.?trust|pii|guardrail)/)) return "security & compliance tool";
+  const core_has = (re: RegExp) => re.test(core);
+  if (core_has(/(video|film|animation|motion graphic|render|storyboard|screencast|gif maker)/)) return "video creation tool";
+  if (core_has(/\b(cli|mcp|plugin|sdk|api client|developer tool|devtool|linter|compiler|bundler|scaffold)/) && !a.frameworks.frontend.length) return "developer tool";
+  const secTerms = text.match(/\b(risk|fraud|compliance|audit|threat|vulnerab|zero.?trust|pii|guardrail|siem|pentest|malware)/g) ?? [];
+  if (core_has(/(risk|fraud|compliance|audit|security|threat|vulnerab|zero.?trust|pii|guardrail)/) || new Set(secTerms).size >= 2) return "security & compliance tool";
   if (has(/(chat|assistant|copilot|agent|llm|gpt|rag)/) && a.frameworks.ai.length) return "AI assistant";
   if (has(/(anomal|analytics|dashboard|metrics|insight|monitor|observab|telemetry)/)) return "analytics dashboard";
   if (has(/\b(todo|to-do|task manager|tasks app|project management|kanban|planner|habit|note-taking|notes app|journal|outliner?|writing app)\b/)) return "productivity app";

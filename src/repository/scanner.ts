@@ -210,7 +210,7 @@ export function parseReadme(md: string): ReadmeSummary {
     if (inCode) continue;
     if (/^#{1,4}\s+/.test(l)) {
       // Bullets under these headings describe setup, structure or process — never product features.
-      inExcluded = /requirement|prerequisite|install|setup|getting started|usage|quick ?start|licen[cs]e|contribut|structure|layout|files?|folders?|in (this|the) repo|repo(sitory)? (contents|tree)|credits?|acknowledg|faq|troubleshoot|changelog|roadmap|todo|configuration|options|flags|command|develop|testing|deploy|environment|dependenc|support|community|author|related|reference|links?|table of contents|contents/i.test(l);
+      inExcluded = /requirement|prerequisite|install|setup|getting started|usage|quick ?start|licen[cs]e|contribut|structure|layout|files?|folders?|in (this|the) repo|repo(sitory)? (contents|tree)|credits?|acknowledg|faq|troubleshoot|changelog|roadmap|todo|configuration|options|flags|command|develop|testing|deploy|environment|dependenc|support|community|author|related|reference|links?|table of contents|contents|security|limitation|error|verif|rules?|laws?|pipeline|differs?|comparison|output|caveat|known issues|disclaimer/i.test(l);
       inFeatures = !inExcluded && /feature|highlight|capabilit|what (it|you|can) do|key|why|includes|overview|functionality/i.test(l);
       continue;
     }
@@ -218,6 +218,7 @@ export function parseReadme(md: string): ReadmeSummary {
     if (!bullet || inExcluded) continue;
     const text = stripMarkdown(bullet[1]).replace(/^\*\*|\*\*$/g, "").trim();
     if (text.length < 4 || text.length > 200) continue;
+    if (/^["'“‘`]/.test(text)) continue; // quoted rule/example bullets are never features
     if (/^(npm|yarn|pnpm|pip|git|cd|docker|node|python|brew|apt|curl|wget)\b/i.test(text)) continue;
     if (/^[\w.@-]*\/[\w./-]*(\s*([—–:-]|$))/.test(text) || /^\.[\w-]/.test(text)) continue; // paths and dotfiles (also "dir/ — description")
     if (/^[\w.+-]+\s+v?\d+(\.\d+)*\+?$/i.test(text) || /\bv?\d+(\.\d+)+\+?$/.test(text)) continue; // version requirements
