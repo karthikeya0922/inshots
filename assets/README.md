@@ -4,5 +4,5 @@
   `/brag` reference bundles), with precomputed beat/strong-cue presets in `music/cues/`.
   **Verify the license terms with ende.app before redistributing.** Pass your own track to
   `selectMusic()` to avoid them entirely.
-- `sfx/` — CC0 interface, impact and UI sounds from [Kenney](https://kenney.nl/), with
-  `sfx-analysis.json` (brightness / high-frequency-risk metadata used to prefer gentle cues).
+- `sfx/` — the eight CC0 interface and impact sounds from [Kenney](https://kenney.nl/) that the
+  storyboard actually uses (soft impacts, bell impacts, clicks, drops, bong).

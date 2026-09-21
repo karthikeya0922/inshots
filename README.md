@@ -329,7 +329,7 @@ src/
 ├── output/        output dir, quality gate, summary
 └── shared/        exec (safe spawn), fs, color, text
 skills/frameo/   the agent skill (+ review rubric)
-assets/                bundled music (ende.app Happy Beats — verify license before redistribution) and CC0 Kenney SFX
+assets/                bundled music (ende.app Happy Beats — verify license before redistribution) and 8 CC0 Kenney SFX
 test/                  fixtures, unit tests, e2e tests
 ```
 
